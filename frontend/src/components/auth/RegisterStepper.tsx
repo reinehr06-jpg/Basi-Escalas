@@ -213,7 +213,7 @@ export function RegisterStepper({ setIsRegistering }: { setIsRegistering: (val: 
     try {
       await AuthService.register(result.data);
       await login({ email: responsibleEmail, password: registerPassword, remember: true, captcha: captchaToken || "" });
-      toast.success("Igreja cadastrada com sucesso!", { description: "Bem-vindo ao Basileia Church OS!" });
+      toast.success("Igreja cadastrada com sucesso!", { description: "Bem-vindo ao Basiléia Escalas!" });
       router.push("/dashboard");
     } catch (err: any) {
       console.error("Erro no cadastro", err);

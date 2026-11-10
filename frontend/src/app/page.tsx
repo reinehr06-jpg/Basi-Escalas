@@ -73,7 +73,7 @@ export default function LoginPage() {
           <div className="brand-logo-container">
             <img 
               src="https://dash.basileia.global/images/logo-basileia.png?0b669f9a5d54a07b37941d0c8db9ac64" 
-              alt="Basileia Church OS" 
+              alt="Basiléia Escalas" 
               className="brand-logo"
             />
           </div>
@@ -196,7 +196,7 @@ export default function LoginPage() {
             <div className="card-logo">
               <img 
                 src="https://dash.basileia.global/images/logo-basileia.png?0b669f9a5d54a07b37941d0c8db9ac64" 
-                alt="Basileia Church OS" 
+                alt="Basiléia Escalas" 
                 style={{ width: '145px', height: 'auto', filter: 'brightness(0) invert(18%) sepia(87%) saturate(3015%) hue-rotate(253deg) brightness(85%) contrast(108%)' }}
               />
             </div>
@@ -209,7 +209,7 @@ export default function LoginPage() {
             )}
           </div>
 
-          <p className="footer">© 2026 Basileia Church OS. Todos os direitos reservados.</p>
+          <p className="footer">© 2026 Basiléia Escalas. Todos os direitos reservados.</p>
         </div>
       </div>
     </>

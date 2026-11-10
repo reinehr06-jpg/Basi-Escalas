@@ -22,6 +22,7 @@ import {
   Menu,
 } from "lucide-react";
 import { navSections, getFilteredNavSections } from "@/data/navigation";
+import { ROLE_LABELS } from "@/lib/escalas-format";
 import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar({ isInactive = false }: { isInactive?: boolean }) {
@@ -215,7 +216,7 @@ export default function Sidebar({ isInactive = false }: { isInactive?: boolean }
                   className={`ml-[38px] mt-[-2px] font-[500] text-[12px] tracking-[0.02em] text-text-muted leading-tight transition-all duration-300 ${isCollapsed ? "opacity-0 h-0" : "opacity-100"
                     }`}
                 >
-                  {t("Church OS")}
+                  {t("Escalas")}
                 </span>
               </Link>
 
@@ -399,7 +400,7 @@ export default function Sidebar({ isInactive = false }: { isInactive?: boolean }
                   {user?.name || t("User")}
                 </span>
                 <span className="font-[500] text-[11px] text-text-muted leading-tight">
-                  {user?.role === "admin" ? t("Super Admin") : t("Administrator")}
+                  {ROLE_LABELS[user?.role ?? ""] ?? t("User")}
                 </span>
               </div>
 
