@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "../styles/tokens.css";
+
+/* Reset e utilitários globais */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter);
+}
+
+/* Remove o outline roxo/azul padrão do Tailwind v4 em TODOS os elementos */
+*:focus,
+*:focus-visible,
+*:focus-within {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-offset: 0 !important;
+}
+
+/* Manter acessibilidade com borda sutil onde já existir */
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #D1D5DB !important;
+}
+
+/* O restante dos resets do Tailwind e da aplicação já vem embutido na v4 */
+
+/* Loading animations & effects */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.8;
+  }
+}
+
+@keyframes floatSoft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes indeterminateBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(35%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #F3F4F6 0%, #EDE9FE 50%, #F3F4F6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+.animate-shimmer-fast {
+  background: linear-gradient(90deg, #F3F4F6 0%, #E9D5FF 50%, #F3F4F6 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3.5s ease-in-out infinite;
+}
+
+.animate-float-soft {
+  animation: floatSoft 3s ease-in-out infinite;
+}
+
+.animate-indeterminate {
+  animation: indeterminateBar 1.6s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+}

@@ -1,0 +1,23 @@
+# Dependências
+/backend/vendor/
+/frontend/node_modules/
+/frontend/.next/
+/frontend/out/
+
+# Ambiente — nunca versionar segredos
+.env
+.env.local
+.env.*.local
+/backend/.env
+
+# Build e cache
+/backend/storage/*.key
+/backend/storage/framework/cache/data/*
+/backend/storage/logs/*
+/backend/bootstrap/cache/*.php
+/frontend/.turbo/
+*.tsbuildinfo
+
+# Sistema
+.DS_Store
+Thumbs.db

@@ -1,0 +1,63 @@
+services:
+  mongo:
+    image: mongo:8
+    container_name: basi_escalas_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - basi_escalas
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: basi_escalas_backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=mongodb
+      - MONGODB_URI=mongodb://mongo:27017
+      - MONGODB_DATABASE=basi_escalas
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+    networks:
+      - basi_escalas
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: basi_escalas_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - basi_escalas
+
+volumes:
+  mongo_data:
+
+networks:
+  basi_escalas:
+    name: basi_escalas

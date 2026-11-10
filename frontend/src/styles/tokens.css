@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Override: remove borda/outline roxo de foco do Tailwind v4 */
+@layer base {
+  *:focus,
+  *:focus-visible {
+    outline: none !important;
+    outline-width: 0 !important;
+    outline-offset: 0 !important;
+    --tw-ring-color: transparent !important;
+    --tw-ring-shadow: none !important;
+    box-shadow: none !important;
+  }
+}
+
+@theme {
+  --color-sidebar-bg-dark: #0F0538;
+  --color-sidebar-bg-mid: #14043E;
+  --color-sidebar-bg-soft: #180B47;
+  --color-purple-primary: #6D28D9;
+  --color-purple-secondary: #7C3AED;
+  --color-purple-glow: #A855F7;
+  --color-purple-card: rgba(109, 40, 217, 0.18);
+  --color-purple-border: rgba(168, 85, 247, 0.35);
+  --color-text-primary: #F8F7FF;
+  --color-text-secondary: #C5B5E5;
+  --color-text-muted: #A78BFA;
+  --color-text-section: #B794F4;
+  --color-divider: rgba(167, 139, 250, 0.25);
+  --color-divider-dot: #C084FC;
+  --color-item-hover: rgba(124, 58, 237, 0.18);
+  --color-active-item: linear-gradient(90deg, #5B21B6 0%, #7C3AED 100%);
+  --color-user-card-bg: rgba(255, 255, 255, 0.06);
+  --color-user-card-border: rgba(255, 255, 255, 0.10);
+  --color-online-green: #22C55E;
+  
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-sans: var(--font-inter);
+}
+
+:root {
+  --background: #f8f9fa;
+  --foreground: #171717;
+}
