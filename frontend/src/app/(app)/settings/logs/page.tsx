@@ -4,9 +4,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Activity, Search, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
-import PageHeader from "@/components/escalas/PageHeader";
+import DetailHero from "@/components/escalas/DetailHero";
 import EmptyState from "@/components/escalas/EmptyState";
-import BackButton from "@/components/BackButton";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { AuditLogsService, type AuditLog } from "@/services/audit-logs.service";
 import { formatDateTime } from "@/lib/escalas-format";
@@ -40,13 +39,17 @@ export default function AuditLogsPage() {
   }, [fetchItems]);
 
   return (
-    <main className="p-6 pb-5 flex-1 flex flex-col">
-      <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-        <div className="px-6 pt-5">
-          <BackButton href="/settings" />
-        </div>
+    <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full">
+        <DetailHero
+          icon={Activity}
+          breadcrumb={{ label: "Configurações", href: "/settings" }}
+          title="Registro de atividades"
+          subtitle="Publicações, trocas, exclusões e alterações, com autor e data."
+          backHref="/settings"
+          backTitle="Voltar para Configurações"
+        />
 
-        <PageHeader icon={Activity} title="Registro de atividades" subtitle="Publicações, trocas, exclusões e alterações, com autor e data." />
+      <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
 
         <div className="p-6">
           <div className="relative flex items-center w-full sm:w-[280px] h-9 bg-white border border-[#E5E7EB] rounded-lg px-3 focus-within:border-[#6D28D9] transition-colors">

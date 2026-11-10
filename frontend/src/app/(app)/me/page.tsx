@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import {
   CalendarClock, CheckCircle2, XCircle, Repeat2, MapPin, CalendarOff, Award,
 } from "lucide-react";
-import PageHeader from "@/components/escalas/PageHeader";
 import StatusBadge from "@/components/escalas/StatusBadge";
 import EmptyState from "@/components/escalas/EmptyState";
 import Modal from "@/components/Modal";
@@ -107,32 +106,46 @@ export default function MyPanelPage() {
 
   return (
     <>
-      <main className="p-6 pb-5 flex-1 flex flex-col gap-4">
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm">
-          <PageHeader
-            icon={CalendarClock}
-            title={`Olá, ${data.volunteer.name.split(" ")[0]}`}
-            subtitle="Suas próximas escalas e o que depende de você."
-          />
-
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-6">
-            {[
-              { icon: CalendarClock, label: "Próximas escalas", value: data.stats.upcoming, tint: "#F4EEFF", color: "#7C3AED" },
-              { icon: CheckCircle2, label: "A confirmar", value: data.pending_confirmations, tint: "#FEF3C7", color: "#B45309" },
-              { icon: Repeat2, label: "Trocas abertas para mim", value: data.swaps_open_to_me, tint: "#E0F2FE", color: "#0369A1" },
-              { icon: Award, label: "Vezes que servi", value: data.stats.served_total, tint: "#ECFDF5", color: "#047857" },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-[#E5E7EB] p-3.5 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: stat.tint }}>
-                  <stat.icon className="w-4 h-4" style={{ color: stat.color }} strokeWidth={2.2} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[20px] font-bold text-[#1A1A2E] leading-none tabular-nums">{stat.value}</p>
-                  <p className="text-[11px] text-[#6B7280] mt-1 truncate">{stat.label}</p>
-                </div>
-              </div>
-            ))}
+      <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full gap-4">
+        <div className="bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] rounded-[16px] p-[16px_20px] flex flex-col xl:flex-row xl:items-center justify-between gap-[16px] shadow-[0_4px_16px_rgba(124,58,237,0.3)]">
+          <div className="flex items-center gap-[12px] flex-1">
+            <div className="w-[40px] h-[40px] rounded-[10px] bg-white/15 border border-white/20 backdrop-blur-md flex items-center justify-center shrink-0">
+              <CalendarClock className="w-[20px] h-[20px] text-white" strokeWidth={2.2} />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="text-[18px] sm:text-[22px] font-[800] text-white leading-tight drop-shadow-sm tracking-tight">
+                Olá, {data.volunteer.name.split(" ")[0]}
+              </h1>
+              <p className="text-[11px] sm:text-[12px] text-purple-200 mt-0.5">
+                Suas próximas escalas e o que depende de você.
+              </p>
+            </div>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] shrink-0">
+          {[
+            { icon: CalendarClock, label: "Próximas", hint: "escalas confirmadas e pendentes", value: data.stats.upcoming, tint: "#F4EEFF", color: "#7C3AED" },
+            { icon: CheckCircle2, label: "A confirmar", hint: "esperando sua resposta", value: data.pending_confirmations, tint: "#FEF3C7", color: "#B45309" },
+            { icon: Repeat2, label: "Trocas", hint: "abertas para você cobrir", value: data.swaps_open_to_me, tint: "#E0F2FE", color: "#0369A1" },
+            { icon: Award, label: "Já servi", hint: "presenças registradas", value: data.stats.served_total, tint: "#ECFDF5", color: "#047857" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white rounded-[12px] border border-[#E5E7EB] p-[16px_18px] flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
+            >
+              <div className="flex flex-col overflow-hidden w-full">
+                <span className="text-[12px] font-[600] text-[#6B7280] truncate">{stat.label}</span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-[24px] font-[800] text-[#1A1A2E]">{stat.value}</span>
+                </div>
+                <span className="text-[11px] font-[600] text-[#6B7280] mt-0.5 truncate">{stat.hint}</span>
+              </div>
+              <div className="w-[42px] h-[42px] rounded-[10px] flex items-center justify-center shrink-0 ml-2" style={{ backgroundColor: stat.tint }}>
+                <stat.icon className="w-[20px] h-[20px]" style={{ color: stat.color }} strokeWidth={2.4} />
+              </div>
+            </div>
+          ))}
         </div>
 
         <section className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">

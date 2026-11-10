@@ -3,8 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SlidersHorizontal, Save, RotateCcw } from "lucide-react";
-import PageHeader from "@/components/escalas/PageHeader";
-import BackButton from "@/components/BackButton";
+import DetailHero from "@/components/escalas/DetailHero";
 import BeautifulSwitch from "@/components/BeautifulSwitch";
 import { EscalasSettingsService } from "@/services/escalas-settings.service";
 import type { SettingRow } from "@/types/escalas";
@@ -81,30 +80,29 @@ export default function SchedulingSettingsPage() {
   }, {});
 
   return (
-    <main className="p-6 pb-5 flex-1 flex flex-col">
+    <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full">
+      <DetailHero
+        icon={SlidersHorizontal}
+        breadcrumb={{ label: "Configurações", href: "/settings" }}
+        title="Regras e automações"
+        subtitle="Padrões do sistema. Cada ministério pode ter os próprios valores."
+        backHref="/settings"
+        backTitle="Voltar para Configurações"
+        actions={
+          dirty ? (
+            <button
+              onClick={save}
+              disabled={saving}
+              className="h-[38px] px-3.5 sm:px-4 bg-white hover:bg-purple-50 text-[#6D28D9] font-bold text-xs sm:text-sm rounded-[10px] transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-[0.98] disabled:opacity-60"
+            >
+              <Save className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={2.4} />
+              <span>{saving ? "Salvando…" : "Salvar alterações"}</span>
+            </button>
+          ) : undefined
+        }
+      />
+
       <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-        <div className="px-6 pt-5">
-          <BackButton href="/settings" />
-        </div>
-
-        <PageHeader
-          icon={SlidersHorizontal}
-          title="Regras e automações"
-          subtitle="Padrões do sistema. Cada ministério pode ter os próprios valores."
-          actions={
-            dirty ? (
-              <button
-                onClick={save}
-                disabled={saving}
-                className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 transition-colors shadow-sm"
-              >
-                <Save className="w-4 h-4" strokeWidth={2.2} />
-                {saving ? "Salvando…" : "Salvar alterações"}
-              </button>
-            ) : undefined
-          }
-        />
-
         {loading ? (
           <div className="p-10 text-center text-sm text-[#6B7280]">Carregando…</div>
         ) : (

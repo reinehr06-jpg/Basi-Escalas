@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Building2, Save } from "lucide-react";
-import PageHeader from "@/components/escalas/PageHeader";
-import BackButton from "@/components/BackButton";
+import DetailHero from "@/components/escalas/DetailHero";
 import CustomSelect from "@/components/CustomSelect";
 import { EscalasSettingsService } from "@/services/escalas-settings.service";
 
@@ -58,12 +57,17 @@ export default function OrganizationSettingsPage() {
   };
 
   return (
-    <main className="p-6 pb-5 flex-1 flex flex-col">
+    <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full">
+      <DetailHero
+        icon={Building2}
+        breadcrumb={{ label: "Configurações", href: "/settings" }}
+        title="Dados da igreja"
+        subtitle="Identificação e preferências regionais."
+        backHref="/settings"
+        backTitle="Voltar para Configurações"
+      />
+
       <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden">
-        <div className="px-6 pt-5">
-          <BackButton href="/settings" />
-        </div>
-        <PageHeader icon={Building2} title="Dados da igreja" subtitle="Identificação e preferências regionais." />
 
         {loading ? (
           <div className="p-10 text-center text-sm text-[#6B7280]">Carregando…</div>
