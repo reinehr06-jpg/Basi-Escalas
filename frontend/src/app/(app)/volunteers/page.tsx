@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Users, Plus, Search, Pencil, Trash2, X, Upload } from "lucide-react";
 import Pagination from "@/components/Pagination";
@@ -18,6 +19,7 @@ import { MinistriesService } from "@/services/ministries.service";
 import type { Ministry, Volunteer } from "@/types/escalas";
 
 export default function VolunteersPage() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Volunteer[]>([]);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [total, setTotal] = useState(0);
@@ -90,8 +92,8 @@ export default function VolunteersPage() {
         <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
           <PageHeader
             icon={Users}
-            title="Voluntários"
-            subtitle="Quem serve, em quais ministérios e funções."
+            title={t("Volunteers")}
+            subtitle={t("Who serves, in which ministries and functions.")}
           />
 
           <div className="p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -100,9 +102,7 @@ export default function VolunteersPage() {
                 href="/volunteers/new"
                 className="flex items-center justify-center gap-1.5 px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors shadow-sm"
               >
-                <Plus className="w-4 h-4" strokeWidth={2.4} />
-                Novo voluntário
-              </Link>
+                <Plus className="w-4 h-4" strokeWidth={2.4} />{t("New volunteer")}</Link>
               <Link
                 href="/volunteers/import"
                 className="flex items-center justify-center gap-1.5 px-4 h-9 border border-[#E5E7EB] bg-white text-[#4B5563] text-[13px] font-semibold rounded-lg hover:bg-[#F9FAFB] transition-colors"
@@ -120,7 +120,7 @@ export default function VolunteersPage() {
                     setMinistryId(value);
                     setCurrentPage(1);
                   }}
-                  placeholder="Todos os ministérios"
+                  placeholder={t("All ministries")}
                   searchable
                   isClearable
                   className="h-9"
@@ -153,7 +153,7 @@ export default function VolunteersPage() {
                     setCurrentPage(1);
                   }}
                   placeholder="Nome, e-mail ou telefone"
-                  aria-label="Buscar voluntário"
+                  aria-label={t("Search volunteer")}
                   className="bg-transparent border-none outline-none text-[13px] text-[#1A1A2E] placeholder-[#9CA3AF] w-full pr-6"
                 />
                 {searchTerm && (
@@ -171,18 +171,18 @@ export default function VolunteersPage() {
 
           <ResponsiveTableCard minWidth="900px">
             <div className="grid grid-cols-[110px_1.6fr_1.6fr_130px_1.4fr_110px] min-w-[900px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
-              <span className="text-xs font-bold text-[#6B7280]">Situação</span>
-              <span className="text-xs font-bold text-[#6B7280]">Voluntário</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Status")}</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Volunteer")}</span>
               <span className="text-xs font-bold text-[#6B7280]">E-mail</span>
               <span className="text-xs font-bold text-[#6B7280]">Telefone</span>
-              <span className="text-xs font-bold text-[#6B7280]">Ministérios</span>
-              <span className="text-xs font-bold text-[#6B7280] text-center">Ações</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Ministries")}</span>
+              <span className="text-xs font-bold text-[#6B7280] text-center">{t("Actions")}</span>
             </div>
 
             {loading ? (
-              <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+              <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
             ) : items.length === 0 ? (
-              <EmptyState icon={Users} title="Nenhum voluntário encontrado" description="Cadastre ou importe as pessoas que servem." />
+              <EmptyState icon={Users} title={t("No volunteer found")} description="Cadastre ou importe as pessoas que servem." />
             ) : (
               items.map((volunteer) => (
                 <div
@@ -267,7 +267,7 @@ export default function VolunteersPage() {
         onConfirm={confirmDelete}
         itemName={toDelete?.name}
         isLoading={deleting}
-        description="Voluntários com escalações futuras não podem ser excluídos. Marque como inativo para preservar o histórico."
+        description={t("Volunteers with upcoming assignments cannot be deleted. Mark them inactive to keep the history.")}
       />
     </>
   );

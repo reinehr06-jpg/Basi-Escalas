@@ -64,7 +64,7 @@ export default function EventDetailPage() {
       toast.success(res.message ?? "Escala criada.");
       router.push(`/schedules/${res.item.id}`);
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível criar a escala.");
+      toast.error((err as Error).message || t("Could not create the schedule."));
     } finally {
       setCreating(false);
     }
@@ -87,11 +87,11 @@ export default function EventDetailPage() {
   };
 
   if (loading) {
-    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">Carregando…</div></main>;
+    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">{t("Loading...")}</div></main>;
   }
 
   if (!event) {
-    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">Evento não encontrado.</div></main>;
+    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">{t("Event not found.")}</div></main>;
   }
 
   const scheduledMinistryIds = schedules.map((s) => s.ministry_id);
@@ -170,7 +170,7 @@ export default function EventDetailPage() {
                   <CustomSelect
                     value={creatingFor}
                     onChange={(value: string) => setCreatingFor(value)}
-                    placeholder="Escolher ministério"
+                    placeholder={t("Choose ministry")}
                     searchable
                     className="h-9"
                     options={available.map((m) => ({ value: m.id, label: m.name }))}
@@ -192,7 +192,7 @@ export default function EventDetailPage() {
             <EmptyState
               icon={ClipboardList}
               title="Nenhuma escala criada"
-              description="Escolha um ministério acima para montar a primeira escala deste evento."
+              description={t("Pick a ministry above to build the first schedule for this event.")}
             />
           ) : (
             <ul className="divide-y divide-[#F1F1F4]">
@@ -231,29 +231,28 @@ export default function EventDetailPage() {
           </p>
 
           <div className="flex flex-col gap-[6px]">
-            <label htmlFor="cancel-reason" className="text-[13px] font-[600] text-[#4B5563]">
-              Motivo <span className="text-[#EF4444] ml-0.5">*</span>
+            <label htmlFor="cancel-reason" className="text-[13px] font-[600] text-[#4B5563]">{t("Reason")}<span className="text-[#EF4444] ml-0.5">*</span>
             </label>
             <textarea
               id="cancel-reason"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
-              placeholder="Explique o que aconteceu — os voluntários verão esta mensagem."
+              placeholder={t("Explain what happened — volunteers will see this message.")}
               className="px-3 py-2.5 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9] resize-y"
             />
           </div>
 
           {event.series_id && (
             <div className="flex flex-col gap-[6px]">
-              <label className="text-[13px] font-[600] text-[#4B5563]">Alcance</label>
+              <label className="text-[13px] font-[600] text-[#4B5563]">{t("Scope")}</label>
               <CustomSelect
                 value={cancelScope}
                 onChange={(value: string) => setCancelScope(value as "single" | "series")}
                 className="h-[42px]"
                 options={[
-                  { value: "single", label: "Somente este evento" },
-                  { value: "series", label: "Este e os próximos da série" },
+                  { value: "single", label: t("Only this event") },
+                  { value: "series", label: t("This one and the next in the series") },
                 ]}
               />
             </div>
@@ -263,15 +262,13 @@ export default function EventDetailPage() {
             <button
               onClick={() => setShowCancel(false)}
               className="px-4 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
-            >
-              Voltar
-            </button>
+            >{t("Back")}</button>
             <button
               onClick={cancelEvent}
               disabled={!cancelReason.trim() || cancelling}
               className="px-4 h-9 rounded-lg bg-[#EF4444] text-white text-[13px] font-semibold hover:bg-[#DC2626] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {cancelling ? "Cancelando…" : "Confirmar cancelamento"}
+              {cancelling ? t("Cancelling…") : t("Confirm cancellation")}
             </button>
           </div>
         </div>

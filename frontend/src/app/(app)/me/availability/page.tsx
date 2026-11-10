@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CalendarDays } from "lucide-react";
 import PageHeader from "@/components/escalas/PageHeader";
@@ -10,6 +11,7 @@ import { MeService } from "@/services/escalas-dashboard.service";
 import type { Availability } from "@/types/escalas";
 
 export default function MyAvailabilityPage() {
+  const { t } = useTranslation();
   const [volunteerId, setVolunteerId] = useState<string | null>(null);
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ export default function MyAvailabilityPage() {
       setVolunteerId(res.volunteer?.id ?? null);
       setAvailabilities(res.availabilities ?? []);
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível carregar sua disponibilidade.");
+      toast.error((err as Error).message || t("Could not load your availability."));
     } finally {
       setLoading(false);
     }
@@ -40,18 +42,16 @@ export default function MyAvailabilityPage() {
 
         <PageHeader
           icon={CalendarDays}
-          title="Minha disponibilidade"
-          subtitle="A liderança usa isso para não te escalar em dias que você não pode."
+          title={t("My availability")}
+          subtitle={t("Leadership uses this to avoid scheduling you on days you cannot serve.")}
         />
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-[#6B7280]">Carregando…</div>
+          <div className="p-10 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
         ) : volunteerId ? (
           <AvailabilityEditor volunteerId={volunteerId} initial={availabilities} onSaved={load} />
         ) : (
-          <div className="p-10 text-center text-sm text-[#6B7280]">
-            Seu usuário ainda não está vinculado a um cadastro de voluntário.
-          </div>
+          <div className="p-10 text-center text-sm text-[#6B7280]">{t("Your user is not linked to a volunteer record yet.")}</div>
         )}
       </div>
     </main>

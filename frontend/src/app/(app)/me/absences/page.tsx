@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CalendarOff, Plus, Trash2 } from "lucide-react";
 import PageHeader from "@/components/escalas/PageHeader";
@@ -15,6 +16,7 @@ import type { AbsenceRow } from "@/types/escalas";
 import { ABSENCE_TYPE_LABELS, formatDate, relativeDays } from "@/lib/escalas-format";
 
 export default function MyAbsencesPage() {
+  const { t } = useTranslation();
   const [volunteerId, setVolunteerId] = useState<string | null>(null);
   const [items, setItems] = useState<AbsenceRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,7 @@ export default function MyAbsencesPage() {
       toast.success(res.message);
       load();
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível remover.");
+      toast.error((err as Error).message || t("Could not remove."));
     } finally {
       setBusy(false);
     }
@@ -85,17 +87,15 @@ export default function MyAbsencesPage() {
 
           <PageHeader
             icon={CalendarOff}
-            title="Minhas ausências"
-            subtitle="Avise com antecedência os períodos em que não poderá servir."
+            title={t("My absences")}
+            subtitle={t("Let us know in advance the periods when you cannot serve.")}
             actions={
               volunteerId ? (
                 <button
                   onClick={() => setCreating(true)}
                   className="inline-flex items-center gap-1.5 px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors shadow-sm"
                 >
-                  <Plus className="w-4 h-4" strokeWidth={2.4} />
-                  Avisar ausência
-                </button>
+                  <Plus className="w-4 h-4" strokeWidth={2.4} />{t("Report absence")}</button>
               ) : undefined
             }
           />
@@ -103,11 +103,11 @@ export default function MyAbsencesPage() {
           <div className="h-6" />
 
           {loading ? (
-            <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+            <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
           ) : !volunteerId ? (
-            <EmptyState icon={CalendarOff} title="Usuário sem cadastro de voluntário vinculado" />
+            <EmptyState icon={CalendarOff} title={t("User without a linked volunteer record")} />
           ) : items.length === 0 ? (
-            <EmptyState icon={CalendarOff} title="Nenhuma ausência registrada" />
+            <EmptyState icon={CalendarOff} title={t("No absence registered")} />
           ) : (
             <ul className="divide-y divide-[#F1F1F4] border-t border-[#F1F1F4]">
               {items.map((absence) => (
@@ -129,7 +129,7 @@ export default function MyAbsencesPage() {
                       onClick={() => remove(absence.id)}
                       disabled={busy}
                       className="w-8 h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center hover:bg-[#EF4444]/20 disabled:opacity-50 transition-colors shrink-0"
-                      aria-label="Remover ausência"
+                      aria-label={t("Remove absence")}
                     >
                       <Trash2 className="w-3.5 h-3.5 text-[#EF4444]" strokeWidth={2.2} />
                     </button>
@@ -143,10 +143,8 @@ export default function MyAbsencesPage() {
 
       <Modal open={creating} onClose={() => setCreating(false)} maxWidth="480px">
         <div className="p-6 flex flex-col gap-4">
-          <h2 className="text-[16px] font-bold text-[#1A1A2E]">Avisar ausência</h2>
-          <p className="text-[13px] text-[#4B5563]">
-            A liderança revisa o pedido. Depois de aprovado, você deixa de aparecer como candidato nessas datas.
-          </p>
+          <h2 className="text-[16px] font-bold text-[#1A1A2E]">{t("Report absence")}</h2>
+          <p className="text-[13px] text-[#4B5563]">{t("Leadership reviews the request. Once approved, you stop showing up as a candidate on those dates.")}</p>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-[6px]">
@@ -162,8 +160,7 @@ export default function MyAbsencesPage() {
               />
             </div>
             <div className="flex flex-col gap-[6px]">
-              <label htmlFor="ma-end" className="text-[13px] font-[600] text-[#4B5563]">
-                Até <span className="text-[#EF4444] ml-0.5">*</span>
+              <label htmlFor="ma-end" className="text-[13px] font-[600] text-[#4B5563]">{t("to")}<span className="text-[#EF4444] ml-0.5">*</span>
               </label>
               <input
                 id="ma-end"
@@ -187,8 +184,7 @@ export default function MyAbsencesPage() {
           </div>
 
           <div className="flex flex-col gap-[6px]">
-            <label htmlFor="ma-reason" className="text-[13px] font-[600] text-[#4B5563]">
-              Motivo <span className="text-[#EF4444] ml-0.5">*</span>
+            <label htmlFor="ma-reason" className="text-[13px] font-[600] text-[#4B5563]">{t("Reason")}<span className="text-[#EF4444] ml-0.5">*</span>
             </label>
             <textarea
               id="ma-reason"
@@ -200,15 +196,13 @@ export default function MyAbsencesPage() {
           </div>
 
           <div className="flex justify-end gap-2">
-            <button onClick={() => setCreating(false)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-              Cancelar
-            </button>
+            <button onClick={() => setCreating(false)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">{t("Cancel")}</button>
             <button
               onClick={create}
               disabled={!valid || busy}
               className="px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 transition-colors"
             >
-              {busy ? "Enviando…" : "Enviar"}
+              {busy ? t("Sending…") : t("Send")}
             </button>
           </div>
         </div>

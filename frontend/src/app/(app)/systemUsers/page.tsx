@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { UsersRound, Plus, Search, Pencil, Trash2, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
@@ -16,6 +17,7 @@ import type { SystemUser } from "@/components/forms/SystemUserForm";
 import { ROLE_LABELS } from "@/lib/escalas-format";
 
 export default function SystemUsersPage() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<SystemUser[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -72,8 +74,8 @@ export default function SystemUsersPage() {
         <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
           <PageHeader
             icon={UsersRound}
-            title="Usuários do sistema"
-            subtitle="Quem acessa o sistema e com qual papel."
+            title={t("System users")}
+            subtitle={t("Who accesses the system and with which role.")}
           />
 
           <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -81,9 +83,7 @@ export default function SystemUsersPage() {
               href="/systemUsers/new"
               className="flex items-center justify-center gap-1.5 px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors shadow-sm w-full sm:w-auto"
             >
-              <Plus className="w-4 h-4" strokeWidth={2.4} />
-              Novo usuário
-            </Link>
+              <Plus className="w-4 h-4" strokeWidth={2.4} />{t("New user")}</Link>
 
             <div className="relative flex items-center w-full sm:w-[240px] h-9 bg-white border border-[#E5E7EB] rounded-lg px-3 focus-within:border-[#6D28D9] transition-colors">
               <Search className="text-[#9CA3AF] w-4 h-4 mr-2 shrink-0" strokeWidth={2.4} />
@@ -94,7 +94,7 @@ export default function SystemUsersPage() {
                   setCurrentPage(1);
                 }}
                 placeholder="Nome ou e-mail"
-                aria-label="Buscar usuário"
+                aria-label={t("Search user")}
                 className="bg-transparent border-none outline-none text-[13px] text-[#1A1A2E] placeholder-[#9CA3AF] w-full pr-6"
               />
               {searchTerm && (
@@ -111,17 +111,17 @@ export default function SystemUsersPage() {
 
           <ResponsiveTableCard minWidth="800px">
             <div className="grid grid-cols-[110px_1.4fr_1.8fr_200px_110px] min-w-[800px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
-              <span className="text-xs font-bold text-[#6B7280]">Situação</span>
-              <span className="text-xs font-bold text-[#6B7280]">Usuário</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Status")}</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("User")}</span>
               <span className="text-xs font-bold text-[#6B7280]">E-mail</span>
               <span className="text-xs font-bold text-[#6B7280]">Papel</span>
-              <span className="text-xs font-bold text-[#6B7280] text-center">Ações</span>
+              <span className="text-xs font-bold text-[#6B7280] text-center">{t("Actions")}</span>
             </div>
 
             {loading ? (
-              <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+              <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
             ) : items.length === 0 ? (
-              <EmptyState icon={UsersRound} title="Nenhum usuário encontrado" />
+              <EmptyState icon={UsersRound} title={t("No user found")} />
             ) : (
               items.map((user) => (
                 <div
@@ -182,7 +182,7 @@ export default function SystemUsersPage() {
         onConfirm={confirmDelete}
         itemName={toDelete?.name}
         isLoading={deleting}
-        description="O acesso é removido. O cadastro de voluntário vinculado é preservado."
+        description={t("The access is removed. The linked volunteer record is preserved.")}
       />
     </>
   );

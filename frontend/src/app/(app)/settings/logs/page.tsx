@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Activity, Search, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
@@ -11,6 +12,7 @@ import { AuditLogsService, type AuditLog } from "@/services/audit-logs.service";
 import { formatDateTime } from "@/lib/escalas-format";
 
 export default function AuditLogsPage() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -42,9 +44,9 @@ export default function AuditLogsPage() {
     <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full">
         <DetailHero
           icon={Activity}
-          breadcrumb={{ label: "Configurações", href: "/settings" }}
-          title="Registro de atividades"
-          subtitle="Publicações, trocas, exclusões e alterações, com autor e data."
+          breadcrumb={{ label: t("Settings"), href: "/settings" }}
+          title={t("Activity log")}
+          subtitle={t("Publications, swaps, deletions and changes, with author and date.")}
           backHref="/settings"
           backTitle="Voltar para Configurações"
         />
@@ -60,8 +62,8 @@ export default function AuditLogsPage() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="Buscar por ação, autor ou descrição"
-              aria-label="Buscar no histórico"
+              placeholder={t("Search by action, author or description")}
+              aria-label={t("Search the history")}
               className="bg-transparent border-none outline-none text-[13px] text-[#1A1A2E] placeholder-[#9CA3AF] w-full pr-6"
             />
             {searchTerm && (
@@ -77,9 +79,9 @@ export default function AuditLogsPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+          <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
         ) : items.length === 0 ? (
-          <EmptyState icon={Activity} title="Nenhum registro encontrado" />
+          <EmptyState icon={Activity} title={t("No record found")} />
         ) : (
           <ul className="divide-y divide-[#F1F1F4] border-t border-[#F1F1F4]">
             {items.map((log) => (

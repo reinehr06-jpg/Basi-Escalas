@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Award, Plus, Search, Pencil, Trash2, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
@@ -20,6 +21,7 @@ const EMPTY = { name: "", description: "", category: "", ministry_id: "", validi
 
 /** Módulo 13 — habilidades usadas como requisito das funções. */
 export default function SkillsPage() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Skill[]>([]);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [total, setTotal] = useState(0);
@@ -111,7 +113,7 @@ export default function SkillsPage() {
       setToDelete(null);
       fetchItems();
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível excluir.");
+      toast.error((err as Error).message || t("Could not delete."));
     } finally {
       setBusy(false);
     }
@@ -123,8 +125,8 @@ export default function SkillsPage() {
         <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
           <PageHeader
             icon={Award}
-            title="Habilidades"
-            subtitle="O que uma função exige e o que cada voluntário domina."
+            title={t("Skills")}
+            subtitle={t("What a function requires and what each volunteer masters.")}
           />
 
           <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -163,16 +165,16 @@ export default function SkillsPage() {
           <ResponsiveTableCard minWidth="760px">
             <div className="grid grid-cols-[1.3fr_1.7fr_150px_130px_110px] min-w-[760px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
               <span className="text-xs font-bold text-[#6B7280]">Habilidade</span>
-              <span className="text-xs font-bold text-[#6B7280]">Descrição</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Description")}</span>
               <span className="text-xs font-bold text-[#6B7280]">Categoria</span>
               <span className="text-xs font-bold text-[#6B7280] text-center">Validade</span>
-              <span className="text-xs font-bold text-[#6B7280] text-center">Ações</span>
+              <span className="text-xs font-bold text-[#6B7280] text-center">{t("Actions")}</span>
             </div>
 
             {loading ? (
-              <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+              <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
             ) : items.length === 0 ? (
-              <EmptyState icon={Award} title="Nenhuma habilidade cadastrada" description="Use habilidades para alertar quando alguém não cumpre o requisito de uma função." />
+              <EmptyState icon={Award} title="Nenhuma habilidade cadastrada" description={t("Use skills to warn when someone does not meet a function requirement.")} />
             ) : (
               items.map((skill) => (
                 <div
@@ -247,7 +249,7 @@ export default function SkillsPage() {
           </div>
 
           <div className="flex flex-col gap-[6px]">
-            <label htmlFor="skill-desc" className="text-[13px] font-[600] text-[#4B5563]">Descrição</label>
+            <label htmlFor="skill-desc" className="text-[13px] font-[600] text-[#4B5563]">{t("Description")}</label>
             <textarea
               id="skill-desc"
               value={form.description}
@@ -264,7 +266,7 @@ export default function SkillsPage() {
                 id="skill-cat"
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                placeholder="técnica, vocal…"
+                placeholder={t("technical, vocal…")}
                 className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
               />
             </div>
@@ -283,11 +285,11 @@ export default function SkillsPage() {
           </div>
 
           <div className="flex flex-col gap-[6px]">
-            <label className="text-[13px] font-[600] text-[#4B5563]">Ministério (opcional)</label>
+            <label className="text-[13px] font-[600] text-[#4B5563]">{t("Ministry (optional)")}</label>
             <CustomSelect
               value={form.ministry_id}
               onChange={(value: string) => setForm({ ...form, ministry_id: value })}
-              placeholder="Vale para todos"
+              placeholder={t("Applies to all")}
               searchable
               isClearable
               className="h-[42px]"
@@ -296,15 +298,13 @@ export default function SkillsPage() {
           </div>
 
           <div className="flex justify-end gap-2">
-            <button onClick={() => setCreating(false)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-              Cancelar
-            </button>
+            <button onClick={() => setCreating(false)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">{t("Cancel")}</button>
             <button
               onClick={save}
               disabled={!form.name.trim() || busy}
               className="px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 transition-colors"
             >
-              {busy ? "Salvando…" : "Salvar"}
+              {busy ? t("Saving...") : t("Save")}
             </button>
           </div>
         </div>
@@ -316,7 +316,7 @@ export default function SkillsPage() {
         onConfirm={confirmDelete}
         itemName={toDelete?.name}
         isLoading={busy}
-        description="Habilidades exigidas por alguma função não podem ser excluídas."
+        description={t("Skills required by a function cannot be deleted.")}
       />
     </>
   );

@@ -216,7 +216,7 @@ export default function Sidebar({ isInactive = false }: { isInactive?: boolean }
                   className={`ml-[38px] mt-[-2px] font-[500] text-[12px] tracking-[0.02em] text-text-muted leading-tight transition-all duration-300 ${isCollapsed ? "opacity-0 h-0" : "opacity-100"
                     }`}
                 >
-                  {t("Escalas")}
+                  {t("Scheduling")}
                 </span>
               </Link>
 

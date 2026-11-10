@@ -55,11 +55,11 @@ export default function VolunteerDetailPage() {
   }, [load]);
 
   if (loading) {
-    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">Carregando…</div></main>;
+    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">{t("Loading...")}</div></main>;
   }
 
   if (!volunteer) {
-    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">Voluntário não encontrado.</div></main>;
+    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">{t("Volunteer not found.")}</div></main>;
   }
 
   return (
@@ -113,10 +113,10 @@ export default function VolunteerDetailPage() {
         {stats && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 p-6">
             {[
-              { icon: CalendarCheck, label: "Escalas no total", value: stats.total },
-              { icon: Clock, label: "Próximas", value: stats.upcoming },
-              { icon: Award, label: "Presenças", value: stats.present },
-              { icon: CalendarOff, label: "Faltas", value: stats.absent },
+              { icon: CalendarCheck, label: t("Schedules in total"), value: stats.total },
+              { icon: Clock, label: t("Upcoming"), value: stats.upcoming },
+              { icon: Award, label: t("Attendances"), value: stats.present },
+              { icon: CalendarOff, label: t("Absences count"), value: stats.absent },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl border border-[#E5E7EB] p-3.5">
                 <div className="flex items-center gap-1.5 text-[#9CA3AF]">
@@ -133,11 +133,11 @@ export default function VolunteerDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <section className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
           <header className="px-5 h-12 flex items-center border-b border-[#F1F1F4]">
-            <h2 className="text-[13px] font-bold text-[#1A1A2E]">Ministérios e funções</h2>
+            <h2 className="text-[13px] font-bold text-[#1A1A2E]">{t("Ministries and functions")}</h2>
           </header>
 
           {(volunteer.memberships?.length ?? 0) === 0 ? (
-            <EmptyState icon={Users} title="Sem vínculo com ministérios" description="Sem isso, o voluntário não aparece como candidato nas escalas." />
+            <EmptyState icon={Users} title={t("Not linked to any ministry")} description={t("Without it, the volunteer does not show up as a candidate.")} />
           ) : (
             <ul className="divide-y divide-[#F1F1F4]">
               {volunteer.memberships?.map((membership) => {
@@ -151,7 +151,7 @@ export default function VolunteerDetailPage() {
                     <span className="w-1.5 h-8 rounded-full shrink-0 mt-0.5" style={{ backgroundColor: ministry?.color ?? "#6D28D9" }} />
                     <div className="min-w-0">
                       <Link href={`/ministries/${membership.ministry_id}`} className="text-[13px] font-semibold text-[#1A1A2E] hover:text-[#6D28D9] hover:underline">
-                        {ministry?.name ?? "Ministério removido"}
+                        {ministry?.name ?? t("Removed ministry")}
                       </Link>
                       <p className="text-[11px] text-[#6B7280] mt-0.5">
                         {names.length > 0 ? names.join(" · ") : "Nenhuma função selecionada"}
@@ -173,11 +173,11 @@ export default function VolunteerDetailPage() {
 
         <section className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
           <header className="px-5 h-12 flex items-center border-b border-[#F1F1F4]">
-            <h2 className="text-[13px] font-bold text-[#1A1A2E]">Habilidades</h2>
+            <h2 className="text-[13px] font-bold text-[#1A1A2E]">{t("Skills")}</h2>
           </header>
 
           {skills.length === 0 ? (
-            <EmptyState icon={Award} title="Nenhuma habilidade registrada" />
+            <EmptyState icon={Award} title={t("No skill registered")} />
           ) : (
             <div className="p-5 flex flex-wrap gap-2">
               {skills.map((skill) => {
@@ -198,14 +198,12 @@ export default function VolunteerDetailPage() {
 
         <section className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
           <header className="px-5 h-12 flex items-center justify-between border-b border-[#F1F1F4]">
-            <h2 className="text-[13px] font-bold text-[#1A1A2E]">Ausências</h2>
-            <Link href={`/absences?volunteer_id=${volunteer.id}`} className="text-[12px] font-semibold text-[#6D28D9] hover:underline">
-              Gerenciar
-            </Link>
+            <h2 className="text-[13px] font-bold text-[#1A1A2E]">{t("Absences")}</h2>
+            <Link href={`/absences?volunteer_id=${volunteer.id}`} className="text-[12px] font-semibold text-[#6D28D9] hover:underline">{t("Manage")}</Link>
           </header>
 
           {absences.length === 0 ? (
-            <EmptyState icon={CalendarOff} title="Nenhuma ausência registrada" />
+            <EmptyState icon={CalendarOff} title={t("No absence registered")} />
           ) : (
             <ul className="divide-y divide-[#F1F1F4]">
               {absences.slice(0, 5).map((absence) => (

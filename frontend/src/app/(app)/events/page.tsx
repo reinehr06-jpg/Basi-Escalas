@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   CalendarDays, Plus, ChevronLeft, ChevronRight, List, Grid3x3, MapPin,
@@ -16,11 +17,13 @@ import { MinistriesService } from "@/services/ministries.service";
 import type { CalendarEvent, Ministry } from "@/types/escalas";
 import { EVENT_TYPE_LABELS, formatTime, formatEventStamp } from "@/lib/escalas-format";
 
-const MONTHS = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-];
-const WEEKDAY_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"];
+/** Nomes de mês e iniciais de dia vêm do locale, não de uma lista fixa. */
+const MONTH_LABEL = new Intl.DateTimeFormat("pt-BR", { month: "long" });
+const WEEKDAY_INITIALS = Array.from({ length: 7 }, (_, i) =>
+  new Intl.DateTimeFormat("pt-BR", { weekday: "narrow" })
+    .format(new Date(Date.UTC(2024, 0, 7 + i)))
+    .toUpperCase(),
+);
 
 const TYPE_TINT: Record<string, string> = {
   service: "#6D28D9",
@@ -36,6 +39,7 @@ function iso(date: Date) {
 }
 
 export default function EventsPage() {
+  const { t } = useTranslation();
   const [cursor, setCursor] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -119,7 +123,7 @@ export default function EventsPage() {
       <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
         <PageHeader
           icon={CalendarDays}
-          title="Calendário"
+          title={t("Calendar")}
           subtitle="Cultos, ensaios e eventos que recebem escala."
           actions={
             <Link
@@ -137,17 +141,17 @@ export default function EventsPage() {
             <button
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
               className="w-9 h-9 rounded-lg border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F9FAFB] transition-colors"
-              aria-label="Mês anterior"
+              aria-label={t("Previous month")}
             >
               <ChevronLeft className="w-4 h-4 text-[#4B5563]" />
             </button>
             <span className="text-[14px] font-bold text-[#1A1A2E] min-w-[150px] text-center">
-              {MONTHS[cursor.getMonth()]} {cursor.getFullYear()}
+              {MONTH_LABEL.format(cursor).replace(/^./, (c) => c.toUpperCase())} {cursor.getFullYear()}
             </span>
             <button
               onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
               className="w-9 h-9 rounded-lg border border-[#E5E7EB] flex items-center justify-center hover:bg-[#F9FAFB] transition-colors"
-              aria-label="Próximo mês"
+              aria-label={t("Next month")}
             >
               <ChevronRight className="w-4 h-4 text-[#4B5563]" />
             </button>
@@ -167,7 +171,7 @@ export default function EventsPage() {
               <CustomSelect
                 value={ministryId}
                 onChange={(value: string) => setMinistryId(value)}
-                placeholder="Todos os ministérios"
+                placeholder={t("All ministries")}
                 searchable
                 isClearable
                 className="h-9"
@@ -208,7 +212,7 @@ export default function EventsPage() {
         </div>
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-[#6B7280]">Carregando…</div>
+          <div className="p-10 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
         ) : view === "month" ? (
           <div className="px-6 pb-6 overflow-x-auto">
             <div className="min-w-[700px]">
@@ -272,8 +276,8 @@ export default function EventsPage() {
         ) : events.length === 0 ? (
           <EmptyState
             icon={CalendarDays}
-            title="Nenhum evento neste mês"
-            description="Cadastre cultos e ensaios para montar as escalas."
+            title={t("No event this month")}
+            description={t("Register services and rehearsals to build the schedules.")}
             action={
               <Link href="/events/new" className="inline-flex items-center justify-center px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors">
                 Novo evento

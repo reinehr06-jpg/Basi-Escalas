@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { GraduationCap, Plus, CheckCheck, Users } from "lucide-react";
 import Pagination from "@/components/Pagination";
@@ -20,6 +21,7 @@ const EMPTY = { name: "", ministry_id: "", skill_ids: [] as string[], starts_at:
 
 /** Módulo 13 — capacitação. Concluir credita as habilidades nos perfis. */
 export default function TrainingsPage() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Training[]>([]);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -108,25 +110,23 @@ export default function TrainingsPage() {
         <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
           <PageHeader
             icon={GraduationCap}
-            title="Capacitação"
-            subtitle="Treinamentos que creditam habilidades ao perfil de quem participa."
+            title={t("Training")}
+            subtitle={t("Training that credits skills to the profile of who takes part.")}
             actions={
               <button
                 onClick={() => setCreating(true)}
                 className="inline-flex items-center gap-1.5 px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors shadow-sm"
               >
-                <Plus className="w-4 h-4" strokeWidth={2.4} />
-                Nova capacitação
-              </button>
+                <Plus className="w-4 h-4" strokeWidth={2.4} />{t("New training")}</button>
             }
           />
 
           <div className="h-6" />
 
           {loading ? (
-            <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+            <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
           ) : items.length === 0 ? (
-            <EmptyState icon={GraduationCap} title="Nenhuma capacitação registrada" description="Treine a equipe e registre aqui para manter as habilidades em dia." />
+            <EmptyState icon={GraduationCap} title={t("No training registered")} description={t("Train the team and register it here to keep skills up to date.")} />
           ) : (
             <ul className="divide-y divide-[#F1F1F4] border-t border-[#F1F1F4]">
               {items.map((training) => {
@@ -142,7 +142,7 @@ export default function TrainingsPage() {
                         <p className="text-[13px] font-semibold text-[#1A1A2E]">{training.name}</p>
                         <StatusBadge
                           status={training.status === "completed" ? "approved" : "open"}
-                          label={training.status === "completed" ? "Concluída" : "Agendada"}
+                          label={training.status === "completed" ? t("Completed") : t("Scheduled")}
                           tone={training.status === "completed" ? "success" : "warning"}
                         />
                       </div>
@@ -169,9 +169,7 @@ export default function TrainingsPage() {
                         }}
                         className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-[#E5E7EB] text-[12px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors shrink-0"
                       >
-                        <CheckCheck className="w-4 h-4" strokeWidth={2.2} />
-                        Concluir
-                      </button>
+                        <CheckCheck className="w-4 h-4" strokeWidth={2.2} />{t("Complete")}</button>
                     )}
                   </li>
                 );
@@ -194,7 +192,7 @@ export default function TrainingsPage() {
 
       <Modal open={creating} onClose={() => setCreating(false)} maxWidth="520px">
         <div className="p-6 flex flex-col gap-4">
-          <h2 className="text-[16px] font-bold text-[#1A1A2E]">Nova capacitação</h2>
+          <h2 className="text-[16px] font-bold text-[#1A1A2E]">{t("New training")}</h2>
 
           <div className="flex flex-col gap-[6px]">
             <label htmlFor="t-name" className="text-[13px] font-[600] text-[#4B5563]">
@@ -233,7 +231,7 @@ export default function TrainingsPage() {
           </div>
 
           <div className="flex flex-col gap-[6px]">
-            <label className="text-[13px] font-[600] text-[#4B5563]">Ministério</label>
+            <label className="text-[13px] font-[600] text-[#4B5563]">{t("Ministry")}</label>
             <CustomSelect
               value={form.ministry_id}
               onChange={(value: string) => setForm({ ...form, ministry_id: value })}
@@ -259,15 +257,13 @@ export default function TrainingsPage() {
           </div>
 
           <div className="flex justify-end gap-2">
-            <button onClick={() => setCreating(false)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-              Cancelar
-            </button>
+            <button onClick={() => setCreating(false)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">{t("Cancel")}</button>
             <button
               onClick={create}
               disabled={!form.name.trim() || !form.starts_at || busy}
               className="px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 transition-colors"
             >
-              {busy ? "Salvando…" : "Criar"}
+              {busy ? t("Saving...") : t("Create")}
             </button>
           </div>
         </div>
@@ -275,18 +271,18 @@ export default function TrainingsPage() {
 
       <Modal open={Boolean(completing)} onClose={() => setCompleting(null)} maxWidth="520px">
         <div className="p-6 flex flex-col gap-4">
-          <h2 className="text-[16px] font-bold text-[#1A1A2E]">Concluir capacitação</h2>
+          <h2 className="text-[16px] font-bold text-[#1A1A2E]">{t("Complete training")}</h2>
           <p className="text-[13px] text-[#4B5563]">
             Quem for marcado recebe as habilidades de <strong>{completing?.name}</strong> no perfil,
             passando a contar como apto nas funções que as exigem.
           </p>
 
           <div className="flex flex-col gap-[6px]">
-            <label className="text-[13px] font-[600] text-[#4B5563]">Concluíram</label>
+            <label className="text-[13px] font-[600] text-[#4B5563]">{t("Completed by")}</label>
             <CustomSelect
               value={completed}
               onChange={(value: string[]) => setCompleted(value)}
-              placeholder="Selecione os voluntários"
+              placeholder={t("Select the volunteers")}
               multiple
               searchable
               className="h-[42px]"
@@ -295,15 +291,13 @@ export default function TrainingsPage() {
           </div>
 
           <div className="flex justify-end gap-2">
-            <button onClick={() => setCompleting(null)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">
-              Cancelar
-            </button>
+            <button onClick={() => setCompleting(null)} className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors">{t("Cancel")}</button>
             <button
               onClick={complete}
               disabled={completed.length === 0 || busy}
               className="px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 transition-colors"
             >
-              {busy ? "Salvando…" : `Concluir para ${completed.length}`}
+              {busy ? t("Saving...") : `Concluir para ${completed.length}`}
             </button>
           </div>
         </div>

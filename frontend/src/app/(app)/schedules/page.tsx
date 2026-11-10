@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ClipboardList, Search, X, CalendarDays } from "lucide-react";
 import Pagination from "@/components/Pagination";
@@ -18,6 +19,7 @@ import type { CalendarEvent, Ministry, Schedule } from "@/types/escalas";
 import { formatEventStamp } from "@/lib/escalas-format";
 
 export default function SchedulesPage() {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Schedule[]>([]);
   const [events, setEvents] = useState<Record<string, CalendarEvent>>({});
   const [ministries, setMinistries] = useState<Ministry[]>([]);
@@ -87,15 +89,13 @@ export default function SchedulesPage() {
         <PageHeader
           icon={ClipboardList}
           title="Escalas"
-          subtitle="Uma escala por ministério em cada evento. Crie a partir do calendário."
+          subtitle={t("One schedule per ministry on each event. Create it from the calendar.")}
           actions={
             <Link
               href="/events"
               className="inline-flex items-center gap-1.5 px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors shadow-sm"
             >
-              <CalendarDays className="w-4 h-4" strokeWidth={2.4} />
-              Ir ao calendário
-            </Link>
+              <CalendarDays className="w-4 h-4" strokeWidth={2.4} />{t("Go to calendar")}</Link>
           }
         />
 
@@ -107,7 +107,7 @@ export default function SchedulesPage() {
                 setMinistryId(value);
                 setCurrentPage(1);
               }}
-              placeholder="Todos os ministérios"
+              placeholder={t("All ministries")}
               searchable
               isClearable
               className="h-9"
@@ -122,7 +122,7 @@ export default function SchedulesPage() {
                 setStatus(value);
                 setCurrentPage(1);
               }}
-              placeholder="Todas as situações"
+              placeholder={t("All statuses")}
               isClearable
               className="h-9"
               options={[
@@ -160,24 +160,22 @@ export default function SchedulesPage() {
 
         <ResponsiveTableCard minWidth="800px">
           <div className="grid grid-cols-[110px_1.3fr_1.7fr_150px_100px] min-w-[800px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
-            <span className="text-xs font-bold text-[#6B7280]">Situação</span>
-            <span className="text-xs font-bold text-[#6B7280]">Ministério</span>
-            <span className="text-xs font-bold text-[#6B7280]">Evento</span>
+            <span className="text-xs font-bold text-[#6B7280]">{t("Status")}</span>
+            <span className="text-xs font-bold text-[#6B7280]">{t("Ministry")}</span>
+            <span className="text-xs font-bold text-[#6B7280]">{t("Event")}</span>
             <span className="text-xs font-bold text-[#6B7280]">Data</span>
-            <span className="text-xs font-bold text-[#6B7280] text-center">Funções</span>
+            <span className="text-xs font-bold text-[#6B7280] text-center">{t("Functions")}</span>
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+            <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
           ) : items.length === 0 ? (
             <EmptyState
               icon={ClipboardList}
               title="Nenhuma escala encontrada"
-              description="As escalas são criadas a partir de um evento do calendário."
+              description={t("Schedules are created from a calendar event.")}
               action={
-                <Link href="/events" className="inline-flex items-center justify-center px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors">
-                  Abrir calendário
-                </Link>
+                <Link href="/events" className="inline-flex items-center justify-center px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors">{t("Open calendar")}</Link>
               }
             />
           ) : (

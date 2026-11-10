@@ -90,7 +90,7 @@ export default function Topbar() {
       },
       {
         path: "/ministerios",
-        title: "Ministérios",
+        title: t("Ministries"),
         desc: "Acompanhe os voluntários, escalas e departamentos da igreja de maneira prática.",
         video: "https://www.youtube.com/watch?v=tutorial_ministerios"
       },

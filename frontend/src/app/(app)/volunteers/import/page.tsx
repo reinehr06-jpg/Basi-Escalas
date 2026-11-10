@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Upload, FileSpreadsheet } from "lucide-react";
 import PageHeader from "@/components/escalas/PageHeader";
@@ -22,6 +23,7 @@ Bruno Lima;bruno@exemplo.com;;1043`;
  * atualiza em vez de duplicar.
  */
 export default function ImportVolunteersPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [raw, setRaw] = useState("");
   const [source, setSource] = useState("planilha");
@@ -87,25 +89,23 @@ export default function ImportVolunteersPage() {
 
         <PageHeader
           icon={Upload}
-          title="Importar voluntários"
-          subtitle="Cole as linhas da planilha. Importar de novo atualiza quem já existe."
+          title={t("Import volunteers")}
+          subtitle={t("Paste the spreadsheet rows. Importing again updates who already exists.")}
         />
 
         <div className="p-6 flex flex-col gap-5">
           <div className="rounded-xl border border-[#E5E7EB] bg-[#FCFCFD] p-4">
             <p className="text-[12px] font-semibold text-[#4B5563] flex items-center gap-1.5">
-              <FileSpreadsheet className="w-4 h-4 text-[#9CA3AF]" />
-              Formato esperado — uma pessoa por linha
-            </p>
+              <FileSpreadsheet className="w-4 h-4 text-[#9CA3AF]" />{t("Expected format — one person per line")}</p>
             <pre className="mt-2 text-[11.5px] text-[#4B5563] font-mono whitespace-pre-wrap">{SAMPLE}</pre>
             <p className="text-[11px] text-[#6B7280] mt-2">
-              Separador <code>;</code> ou <code>,</code>. Só o nome é obrigatório; o cabeçalho é opcional.
+              {t("Separator ; or , . Only the name is required; the header is optional.")}
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-[6px]">
-              <label htmlFor="imp-source" className="text-[13px] font-[600] text-[#4B5563]">Origem</label>
+              <label htmlFor="imp-source" className="text-[13px] font-[600] text-[#4B5563]">{t("Source")}</label>
               <input
                 id="imp-source"
                 value={source}
@@ -113,11 +113,11 @@ export default function ImportVolunteersPage() {
                 placeholder="planilha, church_os…"
                 className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
               />
-              <span className="text-[11px] text-[#9CA3AF]">Fica guardado no cadastro para reconciliar depois.</span>
+              <span className="text-[11px] text-[#9CA3AF]">{t("Kept on the record so it can be reconciled later.")}</span>
             </div>
 
             <div className="flex flex-col gap-[6px]">
-              <label className="text-[13px] font-[600] text-[#4B5563]">Vincular ao ministério</label>
+              <label className="text-[13px] font-[600] text-[#4B5563]">{t("Link to ministry")}</label>
               <CustomSelect
                 value={ministryId}
                 onChange={(value: string) => setMinistryId(value)}
@@ -131,13 +131,13 @@ export default function ImportVolunteersPage() {
           </div>
 
           <div className="flex flex-col gap-[6px]">
-            <label htmlFor="imp-raw" className="text-[13px] font-[600] text-[#4B5563]">Dados</label>
+            <label htmlFor="imp-raw" className="text-[13px] font-[600] text-[#4B5563]">{t("Data")}</label>
             <textarea
               id="imp-raw"
               value={raw}
               onChange={(e) => setRaw(e.target.value)}
               rows={10}
-              placeholder="Cole aqui as linhas da planilha"
+              placeholder={t("Paste the spreadsheet rows here")}
               className="px-3 py-2.5 rounded-lg border border-[#E5E7EB] text-[12.5px] text-[#1A1A2E] font-mono outline-none focus:border-[#6D28D9] resize-y"
             />
           </div>
@@ -146,7 +146,7 @@ export default function ImportVolunteersPage() {
             <div className="rounded-xl border border-[#E5E7EB] overflow-hidden">
               <header className="px-4 h-10 flex items-center border-b border-[#F1F1F4] bg-[#FCFCFD]">
                 <h2 className="text-[12px] font-bold text-[#6B7280]">
-                  Prévia — {preview.length} pessoa(s)
+                  {t("Preview")} — {preview.length}
                 </h2>
               </header>
               <ul className="divide-y divide-[#F1F1F4] max-h-[260px] overflow-y-auto">
@@ -164,16 +164,14 @@ export default function ImportVolunteersPage() {
             <button
               onClick={() => router.back()}
               className="px-4 h-9 rounded-lg border border-[#E5E7EB] text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
-            >
-              Cancelar
-            </button>
+            >{t("Cancel")}</button>
             <button
               onClick={submit}
               disabled={preview.length === 0 || busy}
               className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
               <Upload className="w-4 h-4" strokeWidth={2.4} />
-              {busy ? "Importando…" : `Importar ${preview.length || ""}`}
+              {busy ? t("Importing…") : `Importar ${preview.length || ""}`}
             </button>
           </div>
         </div>

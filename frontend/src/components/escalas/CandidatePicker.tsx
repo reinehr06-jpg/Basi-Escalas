@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, TriangleAlert, Ban, Check, X } from "lucide-react";
 import Modal from "@/components/Modal";
 import VolunteerAvatar from "@/components/escalas/VolunteerAvatar";
@@ -31,6 +32,7 @@ export default function CandidatePicker({
   onPick: (volunteerId: string) => void | Promise<void>;
   picking: boolean;
 }) {
+  const { t } = useTranslation();
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(false);
   const [term, setTerm] = useState("");
@@ -75,9 +77,7 @@ export default function CandidatePicker({
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="text-[16px] font-bold text-[#1A1A2E]">Escalar em {functionName}</h2>
-              <p className="text-[12px] text-[#6B7280] mt-0.5">
-                Ordenado por quem está há mais tempo sem servir e tem menos carga no mês.
-              </p>
+              <p className="text-[12px] text-[#6B7280] mt-0.5">{t("Sorted by who has gone longest without serving and has the lightest month.")}</p>
             </div>
             <button
               onClick={onClose}
@@ -94,8 +94,8 @@ export default function CandidatePicker({
               <input
                 value={term}
                 onChange={(e) => setTerm(e.target.value)}
-                placeholder="Buscar voluntário"
-                aria-label="Buscar voluntário"
+                placeholder={t("Search volunteer")}
+                aria-label={t("Search volunteer")}
                 className="bg-transparent border-none outline-none text-[13px] text-[#1A1A2E] placeholder-[#9CA3AF] w-full"
               />
             </div>
@@ -121,7 +121,7 @@ export default function CandidatePicker({
             <p className="p-8 text-center text-sm text-[#6B7280]">Carregando candidatos…</p>
           ) : filtered.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-sm font-semibold text-[#1A1A2E]">Nenhum voluntário disponível</p>
+              <p className="text-sm font-semibold text-[#1A1A2E]">{t("No volunteer available")}</p>
               <p className="text-xs text-[#6B7280] mt-1">
                 {candidates.length === 0
                   ? "Ninguém está vinculado a esta função. Ajuste o cadastro dos voluntários."
@@ -169,11 +169,9 @@ export default function CandidatePicker({
                           ? "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed"
                           : "bg-[#6D28D9] text-white hover:bg-[#5B21B6] disabled:opacity-50"
                       }`}
-                      title={blocked ? "Há um impedimento para esta data" : "Escalar"}
+                      title={blocked ? "Há um impedimento para esta data" : t("Assign")}
                     >
-                      <Check className="w-3.5 h-3.5" strokeWidth={2.6} />
-                      Escalar
-                    </button>
+                      <Check className="w-3.5 h-3.5" strokeWidth={2.6} />{t("Assign")}</button>
                   </li>
                 );
               })}

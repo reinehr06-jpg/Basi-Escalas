@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import Link from "next/link";
 import { Settings, Building2, SlidersHorizontal, UsersRound, Activity, ChevronRight } from "lucide-react";
 import PageHeader from "@/components/escalas/PageHeader";
@@ -9,8 +10,8 @@ import { useAuth } from "@/context/AuthContext";
 const CARDS = [
   {
     href: "/settings/organization",
-    title: "Dados da igreja",
-    description: "Nome, contato, fuso horário e idioma usados em todo o sistema.",
+    title: "Church data",
+    description: "Name, contact, time zone and language used across the system.",
     icon: Building2,
     tint: "#EFF6FF",
     color: "#2563EB",
@@ -18,8 +19,8 @@ const CARDS = [
   },
   {
     href: "/settings/scheduling",
-    title: "Regras e automações",
-    description: "Prazo de confirmação, folga entre escalas, teto mensal e lembretes.",
+    title: "Rules and automations",
+    description: "Confirmation deadline, rest between schedules, monthly cap and reminders.",
     icon: SlidersHorizontal,
     tint: "#F4EEFF",
     color: "#7C3AED",
@@ -27,8 +28,8 @@ const CARDS = [
   },
   {
     href: "/systemUsers",
-    title: "Usuários e papéis",
-    description: "Quem acessa o sistema e o que cada papel pode fazer.",
+    title: "Users and roles",
+    description: "Who accesses the system and what each role can do.",
     icon: UsersRound,
     tint: "#ECFDF5",
     color: "#047857",
@@ -36,8 +37,8 @@ const CARDS = [
   },
   {
     href: "/settings/logs",
-    title: "Registro de atividades",
-    description: "Histórico de publicações, trocas, exclusões e alterações.",
+    title: "Activity log",
+    description: "History of publications, swaps, deletions and changes.",
     icon: Activity,
     tint: "#FEF3C7",
     color: "#B45309",
@@ -46,6 +47,7 @@ const CARDS = [
 ];
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const role = (user as { role?: string } | null)?.role;
   const isAdmin = role === "admin" || role === "coordinator";
@@ -55,12 +57,10 @@ export default function SettingsPage() {
   return (
     <main className="p-6 pb-5 flex-1 flex flex-col">
       <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-        <PageHeader icon={Settings} title="Configurações" subtitle="Ajustes que valem para todo o sistema de escalas." />
+        <PageHeader icon={Settings} title={t("Settings")} subtitle={t("Settings that apply to the whole scheduling system.")} />
 
         {cards.length === 0 ? (
-          <p className="p-8 text-center text-sm text-[#6B7280]">
-            Nenhuma configuração disponível para o seu perfil.
-          </p>
+          <p className="p-8 text-center text-sm text-[#6B7280]">{t("No setting available for your profile.")}</p>
         ) : (
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-3">
             {cards.map((card) => (
@@ -73,8 +73,8 @@ export default function SettingsPage() {
                   <card.icon className="w-5 h-5" strokeWidth={2.2} style={{ color: card.color }} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-bold text-[#1A1A2E]">{card.title}</p>
-                  <p className="text-[12px] text-[#6B7280] mt-0.5">{card.description}</p>
+                  <p className="text-[13px] font-bold text-[#1A1A2E]">{t(card.title)}</p>
+                  <p className="text-[12px] text-[#6B7280] mt-0.5">{t(card.description)}</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#9CA3AF] shrink-0 mt-1" />
               </Link>

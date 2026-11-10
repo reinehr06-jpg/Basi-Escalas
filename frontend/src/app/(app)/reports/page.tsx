@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { BarChart3 } from "lucide-react";
 import PageHeader from "@/components/escalas/PageHeader";
@@ -21,10 +22,10 @@ import { formatEventStamp } from "@/lib/escalas-format";
 type Tab = "volunteers" | "ministries" | "attendance" | "swaps";
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: "volunteers", label: "Voluntários" },
-  { id: "ministries", label: "Ministérios" },
-  { id: "attendance", label: "Presença por evento" },
-  { id: "swaps", label: "Trocas" },
+  { id: "volunteers", label: "Volunteers" },
+  { id: "ministries", label: "Ministries" },
+  { id: "attendance", label: "Attendance per event" },
+  { id: "swaps", label: "Swaps" },
 ];
 
 function Rate({ value }: { value: number | null }) {
@@ -45,6 +46,7 @@ function defaultPeriod() {
 
 /** Módulo 14 — indicadores de engajamento, cobertura, presença e atrito. */
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const [tab, setTab] = usePersistedState<Tab>("reports:tab", "volunteers");
   const [period, setPeriod] = useState(defaultPeriod);
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ export default function ReportsPage() {
       if (tab === "attendance") setAttendance((await EscalasReportsService.attendance(period)).data);
       if (tab === "swaps") setSwaps(await EscalasReportsService.swaps(period));
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível carregar o relatório.");
+      toast.error((err as Error).message || t("Could not load the report."));
     } finally {
       setLoading(false);
     }
@@ -77,8 +79,8 @@ export default function ReportsPage() {
       <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
         <PageHeader
           icon={BarChart3}
-          title="Relatórios e indicadores"
-          subtitle="Engajamento dos voluntários, cobertura dos ministérios e presença."
+          title={t("Reports and indicators")}
+          subtitle={t("Volunteer engagement, ministry coverage and attendance.")}
           actions={
             <div className="flex items-center gap-2">
               <input
@@ -86,7 +88,7 @@ export default function ReportsPage() {
                 value={period.from}
                 onChange={(e) => setPeriod((p) => ({ ...p, from: e.target.value }))}
                 className="h-9 px-2.5 rounded-lg border border-[#E5E7EB] text-[12px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-                aria-label="Início do período"
+                aria-label={t("Start of period")}
               />
               <span className="text-[#9CA3AF] text-xs">até</span>
               <input
@@ -94,7 +96,7 @@ export default function ReportsPage() {
                 value={period.to}
                 onChange={(e) => setPeriod((p) => ({ ...p, to: e.target.value }))}
                 className="h-9 px-2.5 rounded-lg border border-[#E5E7EB] text-[12px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-                aria-label="Fim do período"
+                aria-label={t("End of period")}
               />
             </div>
           }
@@ -113,26 +115,26 @@ export default function ReportsPage() {
                     : "border-transparent text-[#6B7280] hover:text-[#1A1A2E]"
                 }`}
               >
-                {item.label}
+                {t(item.label)}
               </button>
             ))}
           </div>
         </div>
 
         {loading ? (
-          <div className="p-10 text-center text-sm text-[#6B7280]">Carregando…</div>
+          <div className="p-10 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
         ) : tab === "volunteers" ? (
           volunteers.length === 0 ? (
-            <EmptyState icon={BarChart3} title="Sem escalações no período" />
+            <EmptyState icon={BarChart3} title={t("No assignments in the period")} />
           ) : (
             <ResponsiveTableCard minWidth="760px">
               <div className="grid grid-cols-[1fr_90px_90px_90px_110px_110px] items-center px-6 h-10 border-b border-[#F1F1F4] bg-[#FCFCFD] mt-4">
-                <span className="text-xs font-bold text-[#6B7280]">Voluntário</span>
+                <span className="text-xs font-bold text-[#6B7280]">{t("Volunteer")}</span>
                 <span className="text-xs font-bold text-[#6B7280] text-center">Escalado</span>
                 <span className="text-xs font-bold text-[#6B7280] text-center">Presente</span>
-                <span className="text-xs font-bold text-[#6B7280] text-center">Faltas</span>
-                <span className="text-xs font-bold text-[#6B7280] text-center">Confirmação</span>
-                <span className="text-xs font-bold text-[#6B7280] text-center">Presença</span>
+                <span className="text-xs font-bold text-[#6B7280] text-center">{t("Absences count")}</span>
+                <span className="text-xs font-bold text-[#6B7280] text-center">{t("Confirmation")}</span>
+                <span className="text-xs font-bold text-[#6B7280] text-center">{t("Attendance")}</span>
               </div>
               {volunteers.map((row) => (
                 <div key={row.volunteer_id} className="grid grid-cols-[1fr_90px_90px_90px_110px_110px] items-center px-6 min-h-[46px] py-1.5 border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0">
@@ -153,7 +155,7 @@ export default function ReportsPage() {
           )
         ) : tab === "ministries" ? (
           ministries.length === 0 ? (
-            <EmptyState icon={BarChart3} title="Sem dados no período" />
+            <EmptyState icon={BarChart3} title={t("No data in the period")} />
           ) : (
             <ul className="divide-y divide-[#F1F1F4] border-t border-[#F1F1F4] mt-4">
               {ministries.map((row) => (
@@ -180,7 +182,7 @@ export default function ReportsPage() {
                       <Rate value={row.coverage_rate} />
                     </div>
                     <div className="text-center">
-                      <p className="text-[10px] text-[#9CA3AF] uppercase font-semibold">Presença</p>
+                      <p className="text-[10px] text-[#9CA3AF] uppercase font-semibold">{t("Attendance")}</p>
                       <Rate value={row.attendance_rate} />
                     </div>
                   </div>
@@ -190,15 +192,15 @@ export default function ReportsPage() {
           )
         ) : tab === "attendance" ? (
           attendance.length === 0 ? (
-            <EmptyState icon={BarChart3} title="Nenhum evento no período" />
+            <EmptyState icon={BarChart3} title={t("No event in the period")} />
           ) : (
             <ResponsiveTableCard minWidth="700px">
               <div className="grid grid-cols-[1fr_90px_90px_90px_110px] items-center px-6 h-10 border-b border-[#F1F1F4] bg-[#FCFCFD] mt-4">
-                <span className="text-xs font-bold text-[#6B7280]">Evento</span>
+                <span className="text-xs font-bold text-[#6B7280]">{t("Event")}</span>
                 <span className="text-xs font-bold text-[#6B7280] text-center">Escalados</span>
                 <span className="text-xs font-bold text-[#6B7280] text-center">Presentes</span>
-                <span className="text-xs font-bold text-[#6B7280] text-center">Faltas</span>
-                <span className="text-xs font-bold text-[#6B7280] text-center">Presença</span>
+                <span className="text-xs font-bold text-[#6B7280] text-center">{t("Absences count")}</span>
+                <span className="text-xs font-bold text-[#6B7280] text-center">{t("Attendance")}</span>
               </div>
               {attendance.map((row) => (
                 <div key={row.event_id} className="grid grid-cols-[1fr_90px_90px_90px_110px] items-center px-6 min-h-[46px] py-1.5 border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0">
@@ -236,10 +238,10 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="rounded-xl border border-[#E5E7EB] overflow-hidden">
                 <header className="px-4 h-10 flex items-center border-b border-[#F1F1F4] bg-[#FCFCFD]">
-                  <h2 className="text-[12px] font-bold text-[#6B7280]">Por ministério</h2>
+                  <h2 className="text-[12px] font-bold text-[#6B7280]">{t("By ministry")}</h2>
                 </header>
                 {swaps.by_ministry.length === 0 ? (
-                  <p className="p-5 text-center text-[12px] text-[#9CA3AF]">Sem trocas no período.</p>
+                  <p className="p-5 text-center text-[12px] text-[#9CA3AF]">{t("No swaps in the period.")}</p>
                 ) : (
                   <ul className="divide-y divide-[#F1F1F4]">
                     {swaps.by_ministry.map((row) => (
@@ -257,7 +259,7 @@ export default function ReportsPage() {
                   <h2 className="text-[12px] font-bold text-[#6B7280]">Quem mais pede troca</h2>
                 </header>
                 {swaps.top_requesters.length === 0 ? (
-                  <p className="p-5 text-center text-[12px] text-[#9CA3AF]">Sem trocas no período.</p>
+                  <p className="p-5 text-center text-[12px] text-[#9CA3AF]">{t("No swaps in the period.")}</p>
                 ) : (
                   <ul className="divide-y divide-[#F1F1F4]">
                     {swaps.top_requesters.map((row) => (

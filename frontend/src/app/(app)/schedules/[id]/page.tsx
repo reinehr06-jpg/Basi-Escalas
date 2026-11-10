@@ -61,7 +61,7 @@ export default function ScheduleBuilderPage() {
       setPickerFor(null);
       load();
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível escalar.");
+      toast.error((err as Error).message || t("Could not assign."));
     } finally {
       setBusy(false);
     }
@@ -76,7 +76,7 @@ export default function ScheduleBuilderPage() {
       setRemoving(null);
       load();
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível remover.");
+      toast.error((err as Error).message || t("Could not remove."));
     } finally {
       setBusy(false);
     }
@@ -89,7 +89,7 @@ export default function ScheduleBuilderPage() {
       toast.success(res.message ?? "Escala preenchida.");
       load();
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível preencher automaticamente.");
+      toast.error((err as Error).message || t("Could not autofill."));
     } finally {
       setBusy(false);
     }
@@ -106,10 +106,10 @@ export default function ScheduleBuilderPage() {
       if (apiError.data?.requires_force) {
         // Faltam vagas: só publica se o líder assumir isso explicitamente.
         toast.warning(apiError.message, {
-          action: { label: "Publicar assim mesmo", onClick: () => publish(true) },
+          action: { label: t("Publish anyway"), onClick: () => publish(true) },
         });
       } else {
-        toast.error(apiError.message || "Não foi possível publicar.");
+        toast.error(apiError.message || t("Could not publish."));
       }
     } finally {
       setBusy(false);
@@ -123,7 +123,7 @@ export default function ScheduleBuilderPage() {
       toast.success(res.message);
       load();
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível encerrar.");
+      toast.error((err as Error).message || t("Could not close."));
     } finally {
       setBusy(false);
     }
@@ -136,7 +136,7 @@ export default function ScheduleBuilderPage() {
       toast.success(res.message);
       router.push("/schedules");
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível excluir.");
+      toast.error((err as Error).message || t("Could not delete."));
       setConfirmDeleteSchedule(false);
     } finally {
       setBusy(false);
@@ -144,11 +144,11 @@ export default function ScheduleBuilderPage() {
   };
 
   if (loading) {
-    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">Carregando…</div></main>;
+    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">{t("Loading...")}</div></main>;
   }
 
   if (!detail) {
-    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">Escala não encontrada.</div></main>;
+    return <main className="p-6 flex-1"><div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center text-sm text-[#6B7280]">{t("Schedule not found.")}</div></main>;
   }
 
   const { item: schedule, event, ministry, slots, summary } = detail;
@@ -221,11 +221,9 @@ export default function ScheduleBuilderPage() {
                   onClick={autofill}
                   disabled={busy || summary.missing === 0}
                   className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  title={summary.missing === 0 ? "A escala já está completa" : "Preencher vagas em aberto"}
+                  title={summary.missing === 0 ? t("The schedule is already complete") : "Preencher vagas em aberto"}
                 >
-                  <Wand2 className="w-4 h-4" strokeWidth={2.2} />
-                  Preencher automaticamente
-                </button>
+                  <Wand2 className="w-4 h-4" strokeWidth={2.2} />{t("Autofill")}</button>
 
                 {schedule.status === "draft" && (
                   <button
@@ -233,9 +231,7 @@ export default function ScheduleBuilderPage() {
                     disabled={busy || summary.filled === 0}
                     className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                   >
-                    <Send className="w-4 h-4" strokeWidth={2.2} />
-                    Publicar escala
-                  </button>
+                    <Send className="w-4 h-4" strokeWidth={2.2} />{t("Publish schedule")}</button>
                 )}
 
                 {schedule.status === "published" && (
@@ -244,9 +240,7 @@ export default function ScheduleBuilderPage() {
                     disabled={busy}
                     className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
                   >
-                    <Lock className="w-4 h-4" strokeWidth={2.2} />
-                    Encerrar
-                  </button>
+                    <Lock className="w-4 h-4" strokeWidth={2.2} />{t("Close")}</button>
                 )}
               </>
             )}
@@ -255,18 +249,14 @@ export default function ScheduleBuilderPage() {
               href={`/schedules?duplicate=${schedule.id}`}
               className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
             >
-              <Copy className="w-4 h-4" strokeWidth={2.2} />
-              Duplicar
-            </Link>
+              <Copy className="w-4 h-4" strokeWidth={2.2} />{t("Duplicate")}</Link>
 
             {schedule.status === "draft" && (
               <button
                 onClick={() => setConfirmDeleteSchedule(true)}
                 className="inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg border border-[#EF4444]/30 bg-white text-[13px] font-semibold text-[#B91C1C] hover:bg-[#EF4444]/5 transition-colors ml-auto"
               >
-                <Trash2 className="w-4 h-4" strokeWidth={2.2} />
-                Excluir escala
-              </button>
+                <Trash2 className="w-4 h-4" strokeWidth={2.2} />{t("Delete schedule")}</button>
             )}
           </div>
         </div>
@@ -292,14 +282,12 @@ export default function ScheduleBuilderPage() {
                     onClick={() => setPickerFor({ functionId: slot.function_id, functionName: slot.function_name })}
                     className="inline-flex items-center gap-1 px-3 h-8 rounded-lg bg-[#F4EEFF] text-[#6D28D9] text-[12px] font-semibold hover:bg-[#EDE0FF] transition-colors shrink-0"
                   >
-                    <Plus className="w-3.5 h-3.5" strokeWidth={2.6} />
-                    Escalar
-                  </button>
+                    <Plus className="w-3.5 h-3.5" strokeWidth={2.6} />{t("Assign")}</button>
                 )}
               </header>
 
               {slot.assignments.length === 0 ? (
-                <p className="px-5 py-5 text-[12px] text-[#9CA3AF]">Nenhum voluntário escalado nesta função.</p>
+                <p className="px-5 py-5 text-[12px] text-[#9CA3AF]">{t("No volunteer scheduled for this function.")}</p>
               ) : (
                 <ul className="divide-y divide-[#F1F1F4]">
                   {slot.assignments.map((assignment) => (
@@ -358,8 +346,8 @@ export default function ScheduleBuilderPage() {
         onClose={() => setRemoving(null)}
         onConfirm={removeAssignment}
         itemName={removing?.name}
-        title="Remover da escala"
-        description="O voluntário sai desta escala e a vaga volta a ficar em aberto."
+        title={t("Remove from schedule")}
+        description={t("The volunteer leaves this schedule and the slot opens up again.")}
         isLoading={busy}
       />
 
@@ -368,7 +356,7 @@ export default function ScheduleBuilderPage() {
         onClose={() => setConfirmDeleteSchedule(false)}
         onConfirm={destroy}
         itemName={schedule.name}
-        description="A escala e suas escalações em rascunho serão excluídas."
+        description={t("The schedule and its draft assignments will be deleted.")}
         isLoading={busy}
       />
     </>

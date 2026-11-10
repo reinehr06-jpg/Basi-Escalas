@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { AvailabilityService } from "@/services/availability.service";
@@ -22,6 +23,7 @@ export default function AvailabilityEditor({
   initial?: Availability[];
   onSaved?: () => void;
 }) {
+  const { t } = useTranslation();
   const [blocked, setBlocked] = useState<number[]>([]);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -51,7 +53,7 @@ export default function AvailabilityEditor({
       setDirty(false);
       onSaved?.();
     } catch (err) {
-      toast.error((err as Error).message || "Não foi possível salvar a disponibilidade.");
+      toast.error((err as Error).message || t("Could not save the availability."));
     } finally {
       setSaving(false);
     }
@@ -60,8 +62,7 @@ export default function AvailabilityEditor({
   return (
     <div className="p-5">
       <p className="text-[12px] text-[#6B7280] mb-3">
-        Marque os dias em que o voluntário <strong className="text-[#1A1A2E]">não pode</strong> servir.
-        Dias não marcados ficam disponíveis.
+        {t("Mark the days the volunteer cannot serve. Unmarked days stay available.")}
       </p>
 
       <div className="flex flex-wrap gap-1.5">
@@ -92,7 +93,7 @@ export default function AvailabilityEditor({
           className="mt-4 inline-flex items-center gap-1.5 px-3.5 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 transition-colors"
         >
           <Save className="w-4 h-4" strokeWidth={2.2} />
-          {saving ? "Salvando…" : "Salvar disponibilidade"}
+          {saving ? t("Saving...") : "Salvar disponibilidade"}
         </button>
       )}
     </div>

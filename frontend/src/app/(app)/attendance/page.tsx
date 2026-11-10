@@ -2,9 +2,11 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { UserCheck, Save, MapPin } from "lucide-react";
 import CustomSelect from "@/components/CustomSelect";
+import ResponsiveTableCard from "@/components/ResponsiveTableCard";
 import PageHeader from "@/components/escalas/PageHeader";
 import VolunteerAvatar from "@/components/escalas/VolunteerAvatar";
 import StatusBadge from "@/components/escalas/StatusBadge";
@@ -16,14 +18,15 @@ import type { AssignmentRow, AttendanceStatus, CalendarEvent } from "@/types/esc
 import { formatEventStamp } from "@/lib/escalas-format";
 
 const OPTIONS: { value: AttendanceStatus; label: string; tone: string; active: string }[] = [
-  { value: "present", label: "Presente", tone: "text-[#047857]", active: "bg-[#10B981] text-white border-[#10B981]" },
-  { value: "late", label: "Atrasado", tone: "text-[#B45309]", active: "bg-[#F59E0B] text-white border-[#F59E0B]" },
-  { value: "absent", label: "Faltou", tone: "text-[#B91C1C]", active: "bg-[#EF4444] text-white border-[#EF4444]" },
-  { value: "justified", label: "Justificado", tone: "text-[#0369A1]", active: "bg-[#0EA5E9] text-white border-[#0EA5E9]" },
+  { value: "present", label: "Present", tone: "text-[#047857]", active: "bg-[#10B981] text-white border-[#10B981]" },
+  { value: "late", label: "Late", tone: "text-[#B45309]", active: "bg-[#F59E0B] text-white border-[#F59E0B]" },
+  { value: "absent", label: "Absent", tone: "text-[#B91C1C]", active: "bg-[#EF4444] text-white border-[#EF4444]" },
+  { value: "justified", label: "Justified", tone: "text-[#0369A1]", active: "bg-[#0EA5E9] text-white border-[#0EA5E9]" },
 ];
 
 /** Módulo 10 — check-in do dia: escolhe o evento e marca a lista inteira. */
 export default function AttendancePage() {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [eventId, setEventId] = usePersistedState("attendance:event", "");
   const [rows, setRows] = useState<AssignmentRow[]>([]);
@@ -92,8 +95,8 @@ export default function AttendancePage() {
       <div className="bg-white rounded-2xl flex-1 border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
         <PageHeader
           icon={UserCheck}
-          title="Presenças e check-in"
-          subtitle="Marque quem apareceu no dia. O histórico alimenta os indicadores."
+          title={t("Attendance and check-in")}
+          subtitle={t("Mark who showed up. The history feeds the indicators.")}
           actions={
             changed.length > 0 ? (
               <button
@@ -102,7 +105,7 @@ export default function AttendancePage() {
                 className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 transition-colors shadow-sm"
               >
                 <Save className="w-4 h-4" strokeWidth={2.2} />
-                {saving ? "Salvando…" : `Salvar ${changed.length} alteração(ões)`}
+                {saving ? t("Saving...") : `Salvar ${changed.length} alteração(ões)`}
               </button>
             ) : undefined
           }
@@ -110,7 +113,7 @@ export default function AttendancePage() {
 
         <div className="p-6">
           <div className="max-w-md">
-            <label className="text-[13px] font-[600] text-[#4B5563] block mb-[6px]">Evento</label>
+            <label className="text-[13px] font-[600] text-[#4B5563] block mb-[6px]">{t("Event")}</label>
             <CustomSelect
               value={eventId}
               onChange={(value: string) => setEventId(value)}
@@ -137,29 +140,39 @@ export default function AttendancePage() {
         </div>
 
         {!eventId ? (
-          <EmptyState icon={UserCheck} title="Escolha um evento" description="A lista de quem está escalado aparece aqui." />
+          <EmptyState icon={UserCheck} title={t("Choose an event")} description={t("The list of scheduled people shows up here.")} />
         ) : loading ? (
-          <div className="p-8 text-center text-sm text-[#6B7280]">Carregando…</div>
+          <div className="p-8 text-center text-sm text-[#6B7280]">{t("Loading...")}</div>
         ) : rows.length === 0 ? (
-          <EmptyState icon={UserCheck} title="Ninguém escalado neste evento" />
+          <EmptyState icon={UserCheck} title={t("Nobody scheduled for this event")} />
         ) : (
-          <ul className="divide-y divide-[#F1F1F4] border-t border-[#F1F1F4]">
+          <ResponsiveTableCard minWidth="980px">
+            <div className="grid grid-cols-[1.4fr_1.2fr_1.2fr_120px_340px] min-w-[980px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+              <span className="text-xs font-bold text-[#6B7280]">{t("Volunteer")}</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Ministry")}</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Function")}</span>
+              <span className="text-xs font-bold text-[#6B7280]">{t("Confirmation")}</span>
+              <span className="text-xs font-bold text-[#6B7280] text-center">{t("Attendance")}</span>
+            </div>
+
             {rows.map((row) => (
-              <li key={row.id} className="px-6 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <VolunteerAvatar name={row.volunteer_name ?? "?"} photoUrl={row.volunteer_photo_url} />
-                  <div className="min-w-0">
-                    <Link href={`/volunteers/${row.volunteer_id}`} className="text-[13px] font-[600] text-[#1A1A2E] hover:text-[#6D28D9] hover:underline block truncate">
-                      {row.volunteer_name ?? "—"}
-                    </Link>
-                    <p className="text-[11px] text-[#6B7280] truncate">
-                      {row.ministry_name} · {row.function_name}
-                    </p>
-                  </div>
-                  <StatusBadge status={row.status} />
+              <div
+                key={row.id}
+                className="grid grid-cols-[1.4fr_1.2fr_1.2fr_120px_340px] min-w-[980px] items-center px-6 h-[42px] bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
+              >
+                <div className="flex items-center gap-2 min-w-0 pr-4">
+                  <VolunteerAvatar name={row.volunteer_name ?? "?"} photoUrl={row.volunteer_photo_url} size={22} />
+                  <Link href={`/volunteers/${row.volunteer_id}`} className="text-xs font-[600] text-[#6D28D9] truncate cursor-pointer hover:underline">
+                    {row.volunteer_name ?? "-"}
+                  </Link>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 shrink-0">
+                <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{row.ministry_name ?? "-"}</span>
+                <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{row.function_name ?? "-"}</span>
+
+                <div><StatusBadge status={row.status} /></div>
+
+                <div className="flex items-center justify-center gap-1.5">
                   {OPTIONS.map((option) => {
                     const active = marks[row.id] === option.value;
                     return (
@@ -167,18 +180,18 @@ export default function AttendancePage() {
                         key={option.value}
                         onClick={() => setMarks((prev) => ({ ...prev, [row.id]: option.value }))}
                         aria-pressed={active}
-                        className={`h-8 px-2.5 rounded-lg border text-[12px] font-semibold transition-colors ${
+                        className={`h-7 px-2.5 rounded-lg border text-[11px] font-semibold transition-colors ${
                           active ? option.active : `bg-white border-[#E5E7EB] ${option.tone} hover:bg-[#F9FAFB]`
                         }`}
                       >
-                        {option.label}
+                        {t(option.label)}
                       </button>
                     );
                   })}
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
+          </ResponsiveTableCard>
         )}
       </div>
     </main>
