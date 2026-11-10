@@ -3,17 +3,17 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   ClipboardList, Plus, Send, Wand2, Copy, Trash2, Lock, UserMinus,
   CalendarDays, MapPin, Crown,
 } from "lucide-react";
-import PageHeader from "@/components/escalas/PageHeader";
+import DetailHero from "@/components/escalas/DetailHero";
 import StatusBadge from "@/components/escalas/StatusBadge";
 import CoverageBar from "@/components/escalas/CoverageBar";
 import VolunteerAvatar from "@/components/escalas/VolunteerAvatar";
 import CandidatePicker from "@/components/escalas/CandidatePicker";
-import BackButton from "@/components/BackButton";
 import DeleteModal from "@/components/modals/DeleteModal";
 import { SchedulesService } from "@/services/schedules.service";
 import { AssignmentsService } from "@/services/assignments.service";
@@ -23,6 +23,7 @@ import { formatEventStamp } from "@/lib/escalas-format";
 export default function ScheduleBuilderPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [detail, setDetail] = useState<ScheduleDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -156,22 +157,32 @@ export default function ScheduleBuilderPage() {
 
   return (
     <>
-      <main className="p-6 pb-5 flex-1 flex flex-col gap-4">
+      <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full gap-4">
+        <DetailHero
+          icon={ClipboardList}
+          breadcrumb={{ label: t("Rosters"), href: "/schedules" }}
+          title={ministry?.name ?? schedule.name}
+          subtitle={event?.title}
+          backHref="/schedules"
+          backTitle={t("Back to Schedules")}
+          actions={
+            <>
+              <span className="h-[38px] px-3.5 bg-white/15 border border-white/20 text-white font-semibold text-xs sm:text-sm rounded-[10px] flex items-center">
+                {t(schedule.status === "draft" ? "Draft" : schedule.status === "published" ? "Published" : "Closed")}
+              </span>
+              <Link
+                href={`/events/${schedule.event_id}`}
+                className="h-[38px] px-3.5 sm:px-4 bg-white hover:bg-purple-50 text-[#6D28D9] font-bold text-xs sm:text-sm rounded-[10px] transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+              >
+                <CalendarDays className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={2.4} />
+                <span>{t("Open event")}</span>
+              </Link>
+            </>
+          }
+        />
+
         <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-          <div className="px-6 pt-5">
-            <BackButton href="/schedules" />
-          </div>
-
-          <PageHeader
-            icon={ClipboardList}
-            title={ministry?.name ?? schedule.name}
-            subtitle={event?.title}
-            tint={`${color}1A`}
-            color={color}
-            actions={<StatusBadge status={schedule.status} />}
-          />
-
-          <div className="px-6 pt-4 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[#4B5563]">
+          <div className="px-6 pt-5 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-[#4B5563]">
             {event && (
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="w-4 h-4 text-[#9CA3AF]" />

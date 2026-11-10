@@ -160,9 +160,10 @@ export default function SkillsPage() {
             </div>
           </div>
 
-          <ResponsiveTableCard minWidth="620px">
-            <div className="grid grid-cols-[1fr_150px_130px_110px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+          <ResponsiveTableCard minWidth="760px">
+            <div className="grid grid-cols-[1.3fr_1.7fr_150px_130px_110px] min-w-[760px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
               <span className="text-xs font-bold text-[#6B7280]">Habilidade</span>
+              <span className="text-xs font-bold text-[#6B7280]">Descrição</span>
               <span className="text-xs font-bold text-[#6B7280]">Categoria</span>
               <span className="text-xs font-bold text-[#6B7280] text-center">Validade</span>
               <span className="text-xs font-bold text-[#6B7280] text-center">Ações</span>
@@ -176,16 +177,14 @@ export default function SkillsPage() {
               items.map((skill) => (
                 <div
                   key={skill.id}
-                  className="grid grid-cols-[1fr_150px_130px_110px] items-center px-6 min-h-[48px] py-2 bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
+                  className="grid grid-cols-[1.3fr_1.7fr_150px_130px_110px] min-w-[760px] items-center px-6 h-[42px] bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
                 >
-                  <div className="min-w-0">
-                    <button onClick={() => openEdit(skill)} className="text-[13px] font-[600] text-[#6D28D9] hover:underline truncate block text-left">
-                      {skill.name}
-                    </button>
-                    {skill.description && <p className="text-[11px] text-[#6B7280] truncate">{skill.description}</p>}
-                  </div>
+                  <button onClick={() => openEdit(skill)} className="text-xs font-[600] text-[#6D28D9] truncate text-left pr-4 cursor-pointer hover:underline">
+                    {skill.name}
+                  </button>
 
-                  <span className="text-[12px] text-[#4B5563] truncate">{skill.category || "—"}</span>
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{skill.description || "-"}</span>
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{skill.category || "-"}</span>
 
                   <div className="flex justify-center">
                     {skill.validity_months ? (

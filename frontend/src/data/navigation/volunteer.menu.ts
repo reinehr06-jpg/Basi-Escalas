@@ -4,18 +4,18 @@ import { CalendarClock, CalendarDays, Repeat2, CalendarOff, Settings } from "luc
 /** Voluntário: só a própria agenda. */
 export const volunteerMenu: NavSection[] = [
   {
-    title: "MINHA AGENDA",
+    title: "MY SCHEDULE",
     items: [
-      { label: "Minhas escalas", icon: CalendarClock, href: "/me" },
-      { label: "Disponibilidade", icon: CalendarDays, href: "/me/availability" },
-      { label: "Ausências", icon: CalendarOff, href: "/me/absences" },
-      { label: "Trocas", icon: Repeat2, href: "/swaps" },
+      { label: "My rosters", icon: CalendarClock, href: "/me" },
+      { label: "Availability", icon: CalendarDays, href: "/me/availability" },
+      { label: "Absences", icon: CalendarOff, href: "/me/absences" },
+      { label: "Swaps", icon: Repeat2, href: "/swaps" },
     ],
   },
   {
-    title: "CONFIGURAÇÕES",
+    title: "SETTINGS",
     items: [
-      { label: "Configurações", icon: Settings, href: "/settings" },
+      { label: "Settings", icon: Settings, href: "/settings" },
     ],
   },
 ];

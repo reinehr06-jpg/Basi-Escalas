@@ -1,302 +1,434 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import {
-  LayoutDashboard, CalendarDays, ClipboardList, Users, Repeat2,
-  CalendarOff, TriangleAlert, ArrowRight, CheckCheck, UserCheck,
+  Users, CheckCheck, Repeat2, ClipboardList, ChevronRight,
+  Sun, SunDim, Moon, UserRound,
 } from "lucide-react";
+import {
+  Area, Bar, BarChart, CartesianGrid, Cell, ComposedChart, Line, Pie, PieChart,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from "recharts";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import PageHeader from "@/components/escalas/PageHeader";
-import CoverageBar from "@/components/escalas/CoverageBar";
-import StatusBadge from "@/components/escalas/StatusBadge";
-import EmptyState from "@/components/escalas/EmptyState";
+import CustomDatePicker from "@/components/CustomDatePicker";
+import { useAuth } from "@/context/AuthContext";
 import { EscalasDashboardService } from "@/services/escalas-dashboard.service";
+import { EscalasReportsService } from "@/services/escalas-reports.service";
 import type { DashboardSummary } from "@/types/escalas";
-import { formatEventStamp, relativeDays } from "@/lib/escalas-format";
+import { formatDate } from "@/lib/escalas-format";
 
-function monthBounds() {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const first = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`;
-  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return {
-    from: first,
-    to: `${last.getFullYear()}-${pad(last.getMonth() + 1)}-${pad(last.getDate())}`,
-  };
-}
-
-function Card({
-  icon: Icon, label, value, href, tint, color,
-}: {
-  icon: typeof Users; label: string; value: number | string;
-  href?: string; tint: string; color: string;
-}) {
-  const body = (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-4 flex items-center gap-3 h-full transition-colors hover:border-[#D1D5DB]">
-      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: tint }}>
-        <Icon className="w-4.5 h-4.5" strokeWidth={2.2} style={{ color, width: 18, height: 18 }} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[22px] font-bold text-[#1A1A2E] leading-none tabular-nums">{value}</p>
-        <p className="text-[11px] text-[#6B7280] mt-1 truncate">{label}</p>
-      </div>
-    </div>
-  );
-
-  return href ? <Link href={href} className="block h-full">{body}</Link> : body;
-}
-
-function RateBlock({
-  title, main, caption, parts,
-}: {
-  title: string; main: string; caption: string;
-  parts: { label: string; value: number; color: string }[];
-}) {
-  const total = parts.reduce((sum, p) => sum + p.value, 0);
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-5">
-      <p className="text-xs font-bold text-[#6B7280] uppercase tracking-wide">{title}</p>
-      <p className="text-[28px] font-bold text-[#1A1A2E] leading-tight mt-1 tabular-nums">{main}</p>
-      <p className="text-[11px] text-[#6B7280]">{caption}</p>
-
-      <div className="flex h-2 rounded-full overflow-hidden bg-[#F1F1F4] mt-4">
-        {total > 0 &&
-          parts.map((part) => (
-            <div
-              key={part.label}
-              style={{ width: `${(part.value / total) * 100}%`, backgroundColor: part.color }}
-              title={`${part.label}: ${part.value}`}
-            />
-          ))}
-      </div>
-
-      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-        {parts.map((part) => (
-          <span key={part.label} className="flex items-center gap-1.5 text-[11px] text-[#4B5563]">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: part.color }} />
-            {part.label}
-            <strong className="text-[#1A1A2E] tabular-nums">{part.value}</strong>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
+interface TrendPoint {
+  name: string;
+  scheduled: number;
+  confirmed: number;
+  present: number;
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState(monthBounds);
+  const { t } = useTranslation();
+  const { user } = useAuth();
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      setData(await EscalasDashboardService.summary(period));
-    } catch (err) {
-      console.error(err);
-      toast.error((err as Error).message || "Não foi possível carregar o dashboard.");
-    } finally {
-      setLoading(false);
+  const todayObj = new Date();
+  const startObj = new Date();
+  startObj.setDate(todayObj.getDate() - 56); // 8 semanas de histórico
+  const endObj = new Date();
+  endObj.setDate(todayObj.getDate() + 56); // 8 semanas à frente
+  const defaultStart = startObj.toISOString().split("T")[0];
+  const defaultEnd = endObj.toISOString().split("T")[0];
+
+  const [startDateFilter, setStartDateFilter] = useState(defaultStart);
+  const [endDateFilter, setEndDateFilter] = useState(defaultEnd);
+
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [trend, setTrend] = useState<TrendPoint[]>([]);
+
+  const fetchDashboard = useCallback(async (start: string, end: string) => {
+    if (start && end) {
+      const diffDays = Math.ceil(
+        Math.abs(new Date(end).getTime() - new Date(start).getTime()) / 86_400_000,
+      );
+      if (diffDays > 365) {
+        toast.error(t("The maximum allowed interval is 365 days."));
+        return;
+      }
     }
-  }, [period]);
+
+    try {
+      const [summaryRes, attendanceRes] = await Promise.all([
+        EscalasDashboardService.summary({ from: start, to: end }),
+        EscalasReportsService.attendance({ from: start, to: end }),
+      ]);
+
+      setSummary(summaryRes);
+      setTrend(
+        // Eventos sem ninguém escalado (ensaios, por exemplo) só serrilhariam a série.
+        (attendanceRes.data ?? [])
+          .filter((row) => row.scheduled > 0)
+          .map((row) => ({
+            name: formatDate(row.starts_at).slice(0, 5),
+            scheduled: row.scheduled,
+            confirmed: row.confirmed,
+            present: row.present,
+          })),
+      );
+    } catch (e) {
+      const error = e as Error;
+      console.error(t("Error fetching dashboard data"), error);
+      toast.error(error.message || t("Error fetching dashboard data"));
+    }
+  }, [t]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    fetchDashboard(defaultStart, defaultEnd);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [greeting, setGreeting] = useState("Good morning");
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) setGreeting("Good morning");
+    else if (hour >= 12 && hour < 18) setGreeting("Good afternoon");
+    else setGreeting("Good evening");
+  }, []);
+
+  const getGreetingConfig = () => {
+    if (greeting === "Good morning") {
+      return {
+        icon: <Sun className="w-[32px] h-[32px] text-white drop-shadow-sm" strokeWidth={2} />,
+        bg: "bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_4px_14px_rgba(245,158,11,0.3)]",
+      };
+    }
+    if (greeting === "Good afternoon") {
+      return {
+        icon: <SunDim className="w-[32px] h-[32px] text-white drop-shadow-sm" strokeWidth={2} />,
+        bg: "bg-gradient-to-br from-sky-400 to-blue-500 shadow-[0_4px_14px_rgba(56,187,248,0.3)]",
+      };
+    }
+    return {
+      icon: <Moon className="w-[28px] h-[28px] text-white drop-shadow-sm" strokeWidth={2.2} />,
+      bg: "bg-gradient-to-br from-[#3B0764] to-[#0F172A] shadow-[0_4px_14px_rgba(59,7,100,0.3)]",
+    };
+  };
+  const greetingConfig = getGreetingConfig();
+
+  const coverage = summary?.coverage;
+  const confirmation = summary?.confirmation;
+
+  const pieData = [
+    { name: t("Confirmed"), value: confirmation?.confirmed ?? 0, color: "#10B981" },
+    { name: t("Pending confirmations"), value: confirmation?.pending ?? 0, color: "#F59E0B" },
+    { name: t("Declined"), value: confirmation?.declined ?? 0, color: "#EF4444" },
+  ];
+
+  const barData = (summary?.by_ministry ?? []).map((row) => ({
+    name: row.name,
+    pv: row.rate,
+    ministryId: row.ministry_id,
+  }));
 
   return (
-    <main className="p-6 pb-5 flex-1 flex flex-col gap-4">
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm">
-        <PageHeader
-          icon={LayoutDashboard}
-          title="Dashboard"
-          subtitle="Cobertura, confirmações e presença das escalas no período."
-          actions={
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={period.from}
-                onChange={(e) => setPeriod((p) => ({ ...p, from: e.target.value }))}
-                className="h-9 px-2.5 rounded-lg border border-[#E5E7EB] text-[12px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-                aria-label="Início do período"
-              />
-              <span className="text-[#9CA3AF] text-xs">até</span>
-              <input
-                type="date"
-                value={period.to}
-                onChange={(e) => setPeriod((p) => ({ ...p, to: e.target.value }))}
-                className="h-9 px-2.5 rounded-lg border border-[#E5E7EB] text-[12px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-                aria-label="Fim do período"
-              />
+    <>
+      <main className="flex-grow flex flex-col p-[16px] sm:p-[20px_32px] relative">
+
+        {/* HEADER & FILTERS */}
+        <div className="bg-gradient-to-br from-[#7C3AED] to-[#5B21B6] rounded-[16px] p-[16px_20px] flex flex-col xl:flex-row xl:items-center justify-between gap-[16px] shadow-[0_4px_16px_rgba(124,58,237,0.3)] mb-[16px]">
+
+          <div className="flex items-center gap-[12px] flex-1">
+            <div className={`w-[40px] h-[40px] rounded-[10px] flex items-center justify-center shrink-0 [&>svg]:!w-[20px] [&>svg]:!h-[20px] ${greetingConfig.bg}`}>
+              {greetingConfig.icon}
             </div>
-          }
-        />
-        <div className="h-6" />
-      </div>
-
-      {loading && !data ? (
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-10 text-center text-sm text-[#6B7280]">
-          Carregando…
-        </div>
-      ) : !data ? null : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            <Card icon={CalendarDays} label="Eventos no período" value={data.cards.events} href="/events" tint="#EEF2FF" color="#4F46E5" />
-            <Card icon={ClipboardList} label="Escalas" value={data.cards.schedules} href="/schedules" tint="#F4EEFF" color="#7C3AED" />
-            <Card icon={TriangleAlert} label="Rascunhos" value={data.cards.drafts} href="/schedules?status=draft" tint="#FEF3C7" color="#B45309" />
-            <Card icon={Users} label="Voluntários ativos" value={data.cards.volunteers_active} href="/volunteers" tint="#ECFDF5" color="#047857" />
-            <Card icon={Repeat2} label="Trocas abertas" value={data.cards.open_swaps} href="/swaps?status=open" tint="#E0F2FE" color="#0369A1" />
-            <Card icon={CalendarOff} label="Ausências a revisar" value={data.cards.pending_absences} href="/absences?status=pending" tint="#FEE2E2" color="#B91C1C" />
+            <div className="flex flex-col">
+              <h1 className="text-[18px] sm:text-[22px] font-[800] text-white leading-tight drop-shadow-sm tracking-tight">
+                {t(greeting)}, {user?.name || ""}
+              </h1>
+              <p className="text-[11px] sm:text-[12px] text-purple-200 mt-0.5">
+                {t("Here is how your church's schedules are doing today.")}
+              </p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-            <RateBlock
-              title="Cobertura das vagas"
-              main={`${data.coverage.rate}%`}
-              caption={`${data.coverage.filled} de ${data.coverage.needed} vagas preenchidas`}
-              parts={[
-                { label: "Preenchidas", value: data.coverage.filled, color: "#10B981" },
-                { label: "Em aberto", value: data.coverage.missing, color: "#E5E7EB" },
-              ]}
-            />
-            <RateBlock
-              title="Confirmações"
-              main={`${data.confirmation.rate}%`}
-              caption={`${data.confirmation.confirmed} confirmados`}
-              parts={[
-                { label: "Confirmados", value: data.confirmation.confirmed, color: "#10B981" },
-                { label: "Pendentes", value: data.confirmation.pending, color: "#F59E0B" },
-                { label: "Recusados", value: data.confirmation.declined, color: "#EF4444" },
-              ]}
-            />
-            <RateBlock
-              title="Presença"
-              main={`${data.attendance.rate}%`}
-              caption={`${data.attendance.present} presenças registradas`}
-              parts={[
-                { label: "Presentes", value: data.attendance.present, color: "#10B981" },
-                { label: "Faltas", value: data.attendance.absent, color: "#EF4444" },
-              ]}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-            <section className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-              <header className="px-5 h-12 flex items-center justify-between border-b border-[#F1F1F4]">
-                <h2 className="text-[13px] font-bold text-[#1A1A2E]">Cobertura por ministério</h2>
-                <Link href="/reports" className="text-[12px] font-semibold text-[#6D28D9] hover:underline flex items-center gap-1">
-                  Relatórios <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </header>
-
-              {data.by_ministry.length === 0 ? (
-                <EmptyState icon={ClipboardList} title="Nenhuma escala no período" description="Crie escalas para acompanhar a cobertura por ministério." />
-              ) : (
-                <ul className="divide-y divide-[#F1F1F4]">
-                  {data.by_ministry.map((row) => (
-                    <li key={row.ministry_id} className="px-5 py-3 flex items-center gap-3 hover:bg-[#FAFAFC] transition-colors">
-                      <span className="w-2 h-8 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[13px] font-semibold text-[#1A1A2E] truncate">{row.name}</p>
-                          <span className="text-[11px] text-[#6B7280] shrink-0">{row.schedules} escala(s)</span>
-                        </div>
-                        <div className="mt-1.5">
-                          <CoverageBar filled={row.filled} needed={row.needed} />
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden flex flex-col">
-              <header className="px-5 h-12 flex items-center justify-between border-b border-[#F1F1F4]">
-                <h2 className="text-[13px] font-bold text-[#1A1A2E]">Precisa de atenção</h2>
-                <Link href="/schedules" className="text-[12px] font-semibold text-[#6D28D9] hover:underline flex items-center gap-1">
-                  Ver escalas <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </header>
-
-              {data.attention.length === 0 ? (
-                <EmptyState icon={CheckCheck} title="Tudo em dia" description="Nenhuma escala dos próximos 14 dias está incompleta ou em rascunho." />
-              ) : (
-                <ul className="divide-y divide-[#F1F1F4]">
-                  {data.attention.map((row) => (
-                    <li key={row.schedule_id}>
-                      <Link
-                        href={`/schedules/${row.schedule_id}`}
-                        className="px-5 py-3 flex items-center gap-3 hover:bg-[#FAFAFC] transition-colors"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="text-[13px] font-semibold text-[#1A1A2E] truncate">{row.name}</p>
-                            <StatusBadge status={row.status} />
-                          </div>
-                          <p className="text-[11px] text-[#6B7280] mt-0.5">
-                            {formatEventStamp(row.starts_at)}
-                            {relativeDays(row.starts_at) ? ` · ${relativeDays(row.starts_at)}` : ""}
-                          </p>
-                        </div>
-                        {row.missing > 0 && (
-                          <span className="text-[11px] font-bold text-[#B91C1C] bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-md px-2 h-[22px] flex items-center shrink-0">
-                            faltam {row.missing}
-                          </span>
-                        )}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          </div>
-
-          <section className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-            <header className="px-5 h-12 flex items-center justify-between border-b border-[#F1F1F4]">
-              <h2 className="text-[13px] font-bold text-[#1A1A2E]">Próximos eventos</h2>
-              <Link href="/events" className="text-[12px] font-semibold text-[#6D28D9] hover:underline flex items-center gap-1">
-                Calendário <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </header>
-
-            {data.upcoming.length === 0 ? (
-              <EmptyState
-                icon={CalendarDays}
-                title="Nenhum evento agendado"
-                description="Cadastre cultos, ensaios e eventos para começar a escalar."
-                action={
-                  <Link href="/events/new" className="inline-flex items-center justify-center px-4 h-9 bg-[#6D28D9] text-white text-[13px] font-semibold rounded-lg hover:bg-[#5B21B6] transition-colors">
-                    Novo evento
-                  </Link>
-                }
+          {/* FILTERS */}
+          <div className="flex w-full xl:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-[6px_10px] sm:p-[6px_14px] shadow-[0_4px_12px_rgba(0,0,0,0.1)] w-full xl:w-auto ml-auto xl:ml-0 gap-2 sm:gap-0">
+              <CustomDatePicker
+                value={startDateFilter}
+                onChange={(d) => setStartDateFilter(d)}
+                label={t("Start")}
+                variant="transparent"
               />
-            ) : (
-              <ul className="divide-y divide-[#F1F1F4]">
-                {data.upcoming.map((event) => (
-                  <li key={event.id}>
-                    <Link href={`/events/${event.id}`} className="px-5 py-3 flex items-center gap-4 hover:bg-[#FAFAFC] transition-colors">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-semibold text-[#1A1A2E] truncate">{event.title}</p>
-                        <p className="text-[11px] text-[#6B7280] mt-0.5">
-                          {formatEventStamp(event.starts_at)}
-                          {event.location ? ` · ${event.location}` : ""}
-                        </p>
-                      </div>
-                      <div className="w-32 shrink-0 hidden sm:block">
-                        <CoverageBar filled={event.filled} needed={event.needed} />
-                      </div>
-                      <UserCheck className="w-4 h-4 text-[#9CA3AF] shrink-0" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </>
-      )}
-    </main>
+
+              <div className="hidden sm:block w-[1px] h-[18px] bg-white/20 mx-3 sm:mx-4"></div>
+
+              <div className="border-t border-white/10 sm:border-0 pt-2 sm:pt-0">
+                <CustomDatePicker
+                  value={endDateFilter}
+                  onChange={(d) => setEndDateFilter(d)}
+                  label={t("End")}
+                  variant="transparent"
+                  align="right"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => fetchDashboard(startDateFilter, endDateFilter)}
+                className="w-full sm:w-auto h-[34px] sm:h-[36px] mt-1 sm:mt-0 sm:ml-3 bg-white hover:bg-gray-50 active:scale-[0.98] text-[#7C3AED] text-[13px] font-[700] px-[18px] rounded-[10px] transition-all shadow-sm whitespace-nowrap cursor-pointer flex items-center justify-center"
+              >
+                {t("Filter")}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* CONTENT */}
+        <div className="flex flex-col gap-[12px] pb-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px] shrink-0">
+            {/* Card 1: Cobertura das vagas */}
+            <div
+              className="bg-white rounded-[12px] border border-[#E5E7EB] p-[16px_18px] flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] cursor-pointer hover:bg-slate-50 transition-colors"
+              onClick={() => { window.location.href = "/schedules"; }}
+            >
+              <div className="flex flex-col overflow-hidden w-full">
+                <span className="text-[12px] font-[600] text-[#6B7280] truncate">{t("Coverage")}</span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-[24px] font-[800] text-[#1A1A2E]">{coverage?.rate ?? 0}%</span>
+                  <span className="text-[11px] font-[500] text-[#6B7280]">
+                    {coverage?.filled ?? 0}/{coverage?.needed ?? 0}
+                  </span>
+                </div>
+                <span className="text-[11px] font-[600] text-[#6B7280] mt-0.5 flex items-center gap-1 truncate">
+                  {coverage?.missing
+                    ? `${coverage.missing} ${t("open slots")}`
+                    : t("All slots filled")}
+                </span>
+              </div>
+              <div className="w-[42px] h-[42px] rounded-[10px] bg-[#F4EEFF] flex items-center justify-center shrink-0 ml-2">
+                <ClipboardList className="w-[20px] h-[20px] text-[#7C3AED]" strokeWidth={2.4} />
+              </div>
+            </div>
+
+            {/* Card 2: Confirmações pendentes */}
+            <div
+              className="bg-white rounded-[12px] border border-[#E5E7EB] p-[16px_18px] flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] cursor-pointer hover:bg-slate-50 transition-colors"
+              onClick={() => { window.location.href = "/confirmations"; }}
+            >
+              <div className="flex flex-col overflow-hidden w-full">
+                <span className="text-[12px] font-[600] text-[#6B7280] truncate">{t("To confirm")}</span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-[24px] font-[800] text-[#1A1A2E]">{confirmation?.pending ?? 0}</span>
+                  <span className="text-[11px] font-[500] text-[#6B7280]">{t("people")}</span>
+                </div>
+                <span className="text-[11px] font-[600] text-[#6B7280] mt-0.5 truncate">
+                  {confirmation?.rate ?? 0}% {t("already confirmed")}
+                </span>
+              </div>
+              <div className="w-[42px] h-[42px] rounded-[10px] bg-amber-50 flex items-center justify-center shrink-0 ml-2">
+                <CheckCheck className="w-[20px] h-[20px] text-amber-600" strokeWidth={2.4} />
+              </div>
+            </div>
+
+            {/* Card 3: Voluntários ativos */}
+            <div
+              className="bg-white rounded-[12px] border border-[#E5E7EB] p-[16px_18px] flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] cursor-pointer hover:bg-slate-50 transition-colors"
+              onClick={() => { window.location.href = "/volunteers"; }}
+            >
+              <div className="flex flex-col overflow-hidden w-full">
+                <span className="text-[12px] font-[600] text-[#6B7280] truncate">{t("Volunteers")}</span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-[24px] font-[800] text-[#1A1A2E]">{summary?.cards.volunteers_active ?? 0}</span>
+                </div>
+                <span className="text-[11px] font-[600] text-[#6B7280] mt-0.5 flex items-center gap-1 truncate">
+                  {summary?.cards.ministries ?? 0} {t("active ministries")}
+                </span>
+              </div>
+              <div className="w-[42px] h-[42px] rounded-[10px] bg-green-50 flex items-center justify-center shrink-0 ml-2">
+                <Users className="w-[20px] h-[20px] text-green-600" strokeWidth={2.4} />
+              </div>
+            </div>
+
+            {/* Card 4: Trocas abertas */}
+            <div
+              className="bg-white rounded-[12px] border border-[#E5E7EB] p-[16px_18px] flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.02)] cursor-pointer hover:bg-slate-50 transition-colors"
+              onClick={() => { window.location.href = "/swaps"; }}
+            >
+              <div className="flex flex-col overflow-hidden w-full">
+                <span className="text-[12px] font-[600] text-[#6B7280] truncate">{t("Swaps")}</span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-[24px] font-[800] text-[#1A1A2E]">{summary?.cards.open_swaps ?? 0}</span>
+                </div>
+                <span className="text-[11px] font-[600] text-[#6B7280] mt-0.5 flex items-center gap-1 truncate">
+                  {summary?.cards.pending_absences ?? 0} {t("absences to review")}
+                </span>
+              </div>
+              <div className="w-[42px] h-[42px] rounded-[10px] bg-blue-50 flex items-center justify-center shrink-0 ml-2">
+                <Repeat2 className="w-[20px] h-[20px] text-blue-600" strokeWidth={2.4} />
+              </div>
+            </div>
+          </div>
+
+          {/* ROW 2: Evolução das escalas + Status das confirmações */}
+          <div className="flex flex-col lg:flex-row gap-[12px] shrink-0 items-stretch">
+            <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-[16px_20px] flex-1 flex flex-col shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[300px] lg:min-h-[280px]">
+              <div className="flex justify-between items-center mb-[12px] shrink-0">
+                <span className="text-[14px] font-[700] text-[#1A1A2E]">{t("Schedules per service")}</span>
+              </div>
+              <div className="flex-1 w-full min-h-[180px] ml-[-24px] mt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={trend} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorScheduled" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorConfirmed" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="colorPresent" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#9CA3AF" }} dy={5} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#9CA3AF" }} />
+                    <Tooltip contentStyle={{ borderRadius: "10px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: 500 }} />
+                    <Area type="monotone" dataKey="scheduled" name={t("Scheduled")} stroke="#8B5CF6" fillOpacity={1} fill="url(#colorScheduled)" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+                    <Area type="monotone" dataKey="confirmed" name={t("Confirmed")} stroke="#3B82F6" fillOpacity={1} fill="url(#colorConfirmed)" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="present" name={t("Attended")} stroke="#10B981" strokeWidth={2} dot={false} activeDot={{ r: 6 }} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 mt-4 shrink-0">
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#8B5CF6]"></div><span className="text-[11px] font-[500] text-[#6B7280]">{t("Scheduled")}</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#3B82F6]"></div><span className="text-[11px] font-[500] text-[#6B7280]">{t("Confirmed")}</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#10B981]"></div><span className="text-[11px] font-[500] text-[#6B7280]">{t("Attended")}</span></div>
+              </div>
+            </div>
+
+            {/* Donut: status das confirmações */}
+            <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-[16px_20px] w-full lg:w-[340px] flex flex-col shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[300px] lg:min-h-[280px]">
+              <span className="text-[14px] font-[700] text-[#1A1A2E] mb-[8px] shrink-0">{t("Confirmation status")}</span>
+              <div className="flex-1 flex flex-col items-center justify-center relative min-h-0">
+                <div className="w-[110px] h-[110px] mx-auto relative flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={pieData} innerRadius={38} outerRadius={55} paddingAngle={3} dataKey="value" stroke="none">
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
+                    <span className="text-[20px] font-[800] text-[#1A1A2E] leading-none">
+                      {pieData.reduce((acc, curr) => acc + curr.value, 0)}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+                  {pieData.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 w-[110px]">
+                      <div className="w-[6px] h-[6px] rounded-full shrink-0" style={{ backgroundColor: item.color }}></div>
+                      <span className="text-[10px] font-[500] text-[#6B7280] truncate">{item.name}</span>
+                      <span className="text-[10px] font-[700] text-[#1A1A2E] ml-auto">{item.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ROW 3: Escalas que precisam de atenção + Cobertura por ministério */}
+          <div className="flex flex-col lg:flex-row gap-[12px] shrink-0 items-stretch">
+
+            <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-[16px_20px] flex-1 flex flex-col shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-hidden min-h-[260px] lg:min-h-[240px]">
+              <div className="flex justify-between items-center mb-[8px] shrink-0">
+                <span className="text-[14px] font-[700] text-[#1A1A2E]">{t("Schedules needing attention")}</span>
+                <a href="/schedules" className="text-[11px] font-[600] text-[#7C3AED] hover:underline flex items-center gap-1">
+                  {t("View all")} <ChevronRight className="w-3 h-3" />
+                </a>
+              </div>
+              <div className="flex-1 overflow-auto custom-scrollbar">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-[#F1F1F4]">
+                      <th className="pb-2 text-[10px] font-[700] text-[#9CA3AF] uppercase sticky top-0 bg-white">{t("Roster")}</th>
+                      <th className="pb-2 text-[10px] font-[700] text-[#9CA3AF] uppercase sticky top-0 bg-white">{t("Service")}</th>
+                      <th className="pb-2 text-[10px] font-[700] text-[#9CA3AF] uppercase sticky top-0 bg-white">{t("Date")}</th>
+                      <th className="pb-2 text-[10px] font-[700] text-[#9CA3AF] uppercase sticky top-0 bg-white">{t("Coverage")}</th>
+                      <th className="pb-2 text-[10px] font-[700] text-[#9CA3AF] uppercase text-right sticky top-0 bg-white">{t("Status")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(summary?.attention ?? []).map((item) => (
+                      <tr
+                        key={item.schedule_id}
+                        className="border-b border-[#F1F1F4] last:border-0 hover:bg-[#F9FAFB] cursor-pointer"
+                        onClick={() => { window.location.href = `/schedules/${item.schedule_id}`; }}
+                      >
+                        <td className="py-2.5 text-[12px] font-[600] text-[#1A1A2E] flex items-center gap-2">
+                          <div className="w-[20px] h-[20px] rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
+                            <UserRound className="w-2.5 h-2.5 text-gray-400" />
+                          </div>
+                          {item.name}
+                        </td>
+                        <td className="py-2.5 text-[11px] font-[500] text-[#4B5563] truncate max-w-[150px]">{item.event_title}</td>
+                        <td className="py-2.5 text-[11px] font-[500] text-[#4B5563]">{formatDate(item.starts_at)}</td>
+                        <td className="py-2.5 text-[11px] font-[500] text-[#6D28D9]">{item.filled}/{item.needed}</td>
+                        <td className="py-2.5 text-right">
+                          <span className={`inline-block px-1.5 py-0.5 rounded-[4px] text-[10px] font-[700] tracking-wide ${
+                            item.missing > 0 ? "text-[#D97706] bg-[#FEF3C7]" : "text-[#059669] bg-[#D1FAE5]"
+                          }`}>
+                            {item.missing > 0 ? `${item.missing} ${t("missing")}` : t("Draft")}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Cobertura por ministério */}
+            <div className="bg-white rounded-[14px] border border-[#E5E7EB] p-[16px_20px] w-full lg:w-[340px] flex flex-col shadow-[0_2px_8px_rgba(0,0,0,0.02)] min-h-[260px] lg:min-h-[240px]">
+              <div className="flex justify-between items-center mb-[12px] shrink-0">
+                <span className="text-[14px] font-[700] text-[#1A1A2E]">{t("Coverage by ministry")}</span>
+                <select className="text-[11px] text-[#6B7280] outline-none bg-transparent">
+                  <option>{t("Filled rate")}</option>
+                </select>
+              </div>
+              <div className="flex-1 w-full min-h-[160px] ml-[-20px] mt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#9CA3AF" }} dy={5} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#9CA3AF" }} tickFormatter={(v) => `${v}%`} />
+                    <Tooltip cursor={{ fill: "#F4EEFF" }} contentStyle={{ borderRadius: "8px", border: "none", fontSize: "11px" }} />
+                    <Bar
+                      dataKey="pv"
+                      name={t("Coverage")}
+                      fill="#7C3AED"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={32}
+                      onClick={(data) => {
+                        // O payload do Recharts carrega a linha original da série.
+                        const ministryId = (data as unknown as { payload?: { ministryId?: string } })?.payload?.ministryId;
+                        if (ministryId) window.location.href = `/ministries/${ministryId}`;
+                      }}
+                      className="cursor-pointer"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

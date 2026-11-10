@@ -3,12 +3,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CalendarDays, Pencil, Plus, MapPin, Ban, ClipboardList } from "lucide-react";
-import PageHeader from "@/components/escalas/PageHeader";
+import DetailHero from "@/components/escalas/DetailHero";
 import StatusBadge from "@/components/escalas/StatusBadge";
 import EmptyState from "@/components/escalas/EmptyState";
-import BackButton from "@/components/BackButton";
 import Modal from "@/components/Modal";
 import CustomSelect from "@/components/CustomSelect";
 import { EventsService } from "@/services/events.service";
@@ -20,6 +20,7 @@ import { EVENT_TYPE_LABELS, formatEventStamp, formatTime } from "@/lib/escalas-f
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [event, setEvent] = useState<CalendarEvent | null>(null);
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -101,40 +102,39 @@ export default function EventDetailPage() {
 
   return (
     <>
-      <main className="p-6 pb-5 flex-1 flex flex-col gap-4">
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-          <div className="px-6 pt-5">
-            <BackButton href="/events" />
-          </div>
-
-          <PageHeader
-            icon={CalendarDays}
-            title={event.title}
-            subtitle={event.description ?? undefined}
-            actions={
-              <>
-                <StatusBadge status={event.status} />
-                <Link
-                  href={`/events/${event.id}/edit`}
-                  className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
+      <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full gap-4">
+        <DetailHero
+          icon={CalendarDays}
+          breadcrumb={{ label: t("Calendar"), href: "/events" }}
+          title={event.title}
+          subtitle={event.description ?? undefined}
+          backHref="/events"
+          backTitle={t("Back to Calendar")}
+          actions={
+            <>
+              {!isCancelled && (
+                <button
+                  onClick={() => setShowCancel(true)}
+                  className="h-[38px] px-3.5 sm:px-4 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-semibold text-xs sm:text-sm rounded-[10px] transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-[0.98]"
                 >
-                  <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
-                  Editar
-                </Link>
-                {!isCancelled && (
-                  <button
-                    onClick={() => setShowCancel(true)}
-                    className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-[#EF4444]/30 bg-white text-[13px] font-semibold text-[#B91C1C] hover:bg-[#EF4444]/5 transition-colors"
-                  >
-                    <Ban className="w-3.5 h-3.5" strokeWidth={2.2} />
-                    Cancelar evento
-                  </button>
-                )}
-              </>
-            }
-          />
+                  <Ban className="w-4 h-4 text-white" strokeWidth={2.2} />
+                  <span>{t("Cancel event")}</span>
+                </button>
+              )}
+              <Link
+                href={`/events/${event.id}/edit`}
+                className="h-[38px] px-3.5 sm:px-4 bg-white hover:bg-purple-50 text-[#6D28D9] font-bold text-xs sm:text-sm rounded-[10px] transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+              >
+                <Pencil className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={2.4} />
+                <span>{t("Edit event")}</span>
+              </Link>
+            </>
+          }
+        />
 
-          <div className="px-6 py-5 flex flex-wrap gap-x-8 gap-y-3 text-[12px] text-[#4B5563]">
+        <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
+          <div className="px-6 py-5 flex flex-wrap gap-x-8 gap-y-3 items-center text-[12px] text-[#4B5563]">
+            <StatusBadge status={event.status} />
             <span className="flex items-center gap-1.5">
               <CalendarDays className="w-4 h-4 text-[#9CA3AF]" />
               {formatEventStamp(event.starts_at)}

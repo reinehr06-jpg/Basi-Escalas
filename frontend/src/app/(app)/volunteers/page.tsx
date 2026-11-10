@@ -169,11 +169,13 @@ export default function VolunteersPage() {
             </div>
           </div>
 
-          <ResponsiveTableCard minWidth="720px">
-            <div className="grid grid-cols-[1fr_220px_100px_120px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+          <ResponsiveTableCard minWidth="900px">
+            <div className="grid grid-cols-[110px_1.6fr_1.6fr_130px_1.4fr_110px] min-w-[900px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+              <span className="text-xs font-bold text-[#6B7280]">Situação</span>
               <span className="text-xs font-bold text-[#6B7280]">Voluntário</span>
+              <span className="text-xs font-bold text-[#6B7280]">E-mail</span>
+              <span className="text-xs font-bold text-[#6B7280]">Telefone</span>
               <span className="text-xs font-bold text-[#6B7280]">Ministérios</span>
-              <span className="text-xs font-bold text-[#6B7280] text-center">Situação</span>
               <span className="text-xs font-bold text-[#6B7280] text-center">Ações</span>
             </div>
 
@@ -185,20 +187,24 @@ export default function VolunteersPage() {
               items.map((volunteer) => (
                 <div
                   key={volunteer.id}
-                  className="grid grid-cols-[1fr_220px_100px_120px] items-center px-6 min-h-[52px] py-2 bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
+                  className="grid grid-cols-[110px_1.6fr_1.6fr_130px_1.4fr_110px] min-w-[900px] items-center px-6 h-[42px] bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <VolunteerAvatar name={volunteer.name} photoUrl={volunteer.photo_url} />
-                    <div className="min-w-0">
-                      <Link href={`/volunteers/${volunteer.id}`} className="text-[13px] font-[600] text-[#6D28D9] hover:underline block truncate">
-                        {volunteer.name}
-                      </Link>
-                      {volunteer.email && <p className="text-[11px] text-[#6B7280] truncate">{volunteer.email}</p>}
-                    </div>
+                  <div>
+                    <StatusBadge status={volunteer.status} />
                   </div>
 
-                  <div className="flex flex-wrap gap-1 min-w-0">
-                    {(volunteer.memberships ?? []).slice(0, 3).map((membership) => {
+                  <div className="flex items-center gap-2 min-w-0 pr-4">
+                    <VolunteerAvatar name={volunteer.name} photoUrl={volunteer.photo_url} size={22} />
+                    <Link href={`/volunteers/${volunteer.id}`} className="text-xs font-[600] text-[#6D28D9] truncate cursor-pointer hover:underline">
+                      {volunteer.name}
+                    </Link>
+                  </div>
+
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{volunteer.email || "-"}</span>
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{volunteer.phone || "-"}</span>
+
+                  <div className="flex flex-nowrap gap-1 min-w-0 overflow-hidden pr-4">
+                    {(volunteer.memberships ?? []).slice(0, 2).map((membership) => {
                       const ministry = ministryById[membership.ministry_id];
                       return (
                         <span
@@ -213,16 +219,12 @@ export default function VolunteersPage() {
                         </span>
                       );
                     })}
-                    {(volunteer.memberships?.length ?? 0) > 3 && (
-                      <span className="text-[10.5px] text-[#9CA3AF]">+{(volunteer.memberships?.length ?? 0) - 3}</span>
+                    {(volunteer.memberships?.length ?? 0) > 2 && (
+                      <span className="text-[10.5px] text-[#9CA3AF] shrink-0">+{(volunteer.memberships?.length ?? 0) - 2}</span>
                     )}
                     {(volunteer.memberships?.length ?? 0) === 0 && (
-                      <span className="text-[11px] text-[#9CA3AF]">Sem ministério</span>
+                      <span className="text-xs text-[#9CA3AF]">-</span>
                     )}
-                  </div>
-
-                  <div className="flex justify-center">
-                    <StatusBadge status={volunteer.status} />
                   </div>
 
                   <div className="flex items-center justify-center gap-1.5">

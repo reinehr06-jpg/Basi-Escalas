@@ -2,9 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Save } from "lucide-react";
-import CustomSelect from "@/components/CustomSelect";
+import { UsersRound, ShieldCheck } from "lucide-react";
+import FormInput from "@/components/ui/FormInput";
+import FormSelect from "@/components/ui/FormSelect";
+import { FormCard, FormHero, FormSection } from "@/components/escalas/FormShell";
 import { SystemUsersService } from "@/services/system-users.service";
 import { VolunteersService } from "@/services/volunteers.service";
 import type { Volunteer } from "@/types/escalas";
@@ -21,13 +24,19 @@ export interface SystemUser {
   volunteer_id?: string | null;
 }
 
+const BACK = "/systemUsers";
+
 /**
  * Usuário do sistema = acesso. O vínculo com um voluntário é o que permite
  * ao próprio usuário confirmar presença e pedir troca pela área "Minhas escalas".
  */
 export default function SystemUserForm({ user }: { user?: SystemUser }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const editing = Boolean(user);
+
+  const [openSection, setOpenSection] = useState<string | null>("access");
+  const toggleSection = (key: string) => setOpenSection((prev) => (prev === key ? null : key));
 
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -39,7 +48,7 @@ export default function SystemUserForm({ user }: { user?: SystemUser }) {
 
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     VolunteersService.list({ itemsPerPage: 300 })
@@ -47,9 +56,20 @@ export default function SystemUserForm({ user }: { user?: SystemUser }) {
       .catch(() => setVolunteers([]));
   }, []);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     setErrors({});
+
+    const nextErrors: Record<string, string> = {};
+    if (!name.trim()) nextErrors.name = t("Required field");
+    if (!email.trim()) nextErrors.email = t("Required field");
+    if (!editing && password.length < 8) nextErrors.password = t("At least 8 characters");
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      setOpenSection("access");
+      return;
+    }
+
     setSaving(true);
 
     const payload: Record<string, unknown> = {
@@ -60,149 +80,131 @@ export default function SystemUserForm({ user }: { user?: SystemUser }) {
       phone: phone?.trim() || null,
       volunteer_id: volunteerId || null,
     };
-
     if (password) payload.password = password;
 
     try {
       const res = editing && user
         ? await SystemUsersService.update(user.id, payload)
         : await SystemUsersService.create(payload);
-      toast.success((res as { message: string }).message);
-      router.push("/systemUsers");
+      toast.success(res.message);
+      router.push(BACK);
       router.refresh();
     } catch (err) {
       const apiError = err as Error & { errors?: Record<string, string[]> };
-      setErrors(apiError.errors ?? {});
-      toast.error(apiError.message || "Não foi possível salvar o usuário.");
+      setErrors(Object.fromEntries(Object.entries(apiError.errors ?? {}).map(([k, v]) => [k, v[0]])));
+      toast.error(apiError.message || t("Could not save the user."));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-5 p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-[6px]">
-          <label htmlFor="u-name" className="text-[13px] font-[600] text-[#4B5563]">
-            Nome <span className="text-[#EF4444] ml-0.5">*</span>
-          </label>
-          <input
-            id="u-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`h-[42px] px-3 rounded-lg border text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9] ${
-              errors.name ? "border-[#EF4444]" : "border-[#E5E7EB]"
-            }`}
-            required
-          />
-          {errors.name && <span className="text-[11px] text-[#EF4444]">{errors.name[0]}</span>}
-        </div>
+    <main className="p-6 pb-5 flex-1 flex flex-col">
+      <FormHero
+        icon={UsersRound}
+        title={editing ? t("Edit user") : t("New user")}
+        subtitle={t("Set the role and link the access to a volunteer record.")}
+        backHref={BACK}
+        requiredNote={t("Required fields to save the user.")}
+        onSave={handleSave}
+        saving={saving}
+        disabled={!name.trim() || !email.trim()}
+        saveLabel={editing ? t("Save changes") : t("Save user")}
+      />
 
-        <div className="flex flex-col gap-[6px]">
-          <label htmlFor="u-email" className="text-[13px] font-[600] text-[#4B5563]">
-            E-mail <span className="text-[#EF4444] ml-0.5">*</span>
-          </label>
-          <input
-            id="u-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`h-[42px] px-3 rounded-lg border text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9] ${
-              errors.email ? "border-[#EF4444]" : "border-[#E5E7EB]"
-            }`}
-            required
-          />
-          {errors.email && <span className="text-[11px] text-[#EF4444]">{errors.email[0]}</span>}
-        </div>
-
-        <div className="flex flex-col gap-[6px]">
-          <label htmlFor="u-password" className="text-[13px] font-[600] text-[#4B5563]">
-            Senha {!editing && <span className="text-[#EF4444] ml-0.5">*</span>}
-          </label>
-          <input
-            id="u-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={editing ? "Deixe em branco para manter" : "Mínimo de 8 caracteres"}
-            minLength={8}
-            required={!editing}
-            className={`h-[42px] px-3 rounded-lg border text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9] ${
-              errors.password ? "border-[#EF4444]" : "border-[#E5E7EB]"
-            }`}
-          />
-          {errors.password && <span className="text-[11px] text-[#EF4444]">{errors.password[0]}</span>}
-        </div>
-
-        <div className="flex flex-col gap-[6px]">
-          <label htmlFor="u-phone" className="text-[13px] font-[600] text-[#4B5563]">Telefone</label>
-          <input
-            id="u-phone"
-            value={phone ?? ""}
-            onChange={(e) => setPhone(e.target.value)}
-            className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-          />
-        </div>
-
-        <div className="flex flex-col gap-[6px]">
-          <label className="text-[13px] font-[600] text-[#4B5563]">
-            Papel <span className="text-[#EF4444] ml-0.5">*</span>
-          </label>
-          <CustomSelect
-            value={role}
-            onChange={(value: string) => setRole(value)}
-            className="h-[42px]"
-            options={Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }))}
-          />
-        </div>
-
-        <div className="flex flex-col gap-[6px]">
-          <label className="text-[13px] font-[600] text-[#4B5563]">Situação</label>
-          <CustomSelect
-            value={status}
-            onChange={(value: string) => setStatus(value)}
-            className="h-[42px]"
-            options={[
-              { value: "active", label: "Ativo" },
-              { value: "inactive", label: "Inativo" },
-            ]}
-          />
-        </div>
-
-        <div className="flex flex-col gap-[6px] md:col-span-2">
-          <label className="text-[13px] font-[600] text-[#4B5563]">Voluntário vinculado</label>
-          <CustomSelect
-            value={volunteerId}
-            onChange={(value: string) => setVolunteerId(value)}
-            placeholder="Nenhum"
-            searchable
-            isClearable
-            className="h-[42px]"
-            options={volunteers.map((v) => ({ value: v.id, label: v.name }))}
-          />
-          <span className="text-[11px] text-[#9CA3AF]">
-            Sem vínculo, o usuário não vê a própria agenda nem confirma presença.
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F1F1F4]">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
+      <FormCard>
+        <FormSection
+          icon={UsersRound}
+          title={t("Access data")}
+          description={t("How the person signs in to the system.")}
+          required
+          open={openSection === "access"}
+          onToggle={() => toggleSection("access")}
         >
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={saving || !name.trim() || !email.trim()}
-          className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+            <FormInput
+              label={t("Name")}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+              }}
+              error={errors.name}
+              required
+            />
+            <FormInput
+              label={t("Email")}
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) setErrors((prev) => ({ ...prev, email: "" }));
+              }}
+              error={errors.email}
+              required
+            />
+            <FormInput
+              label={t("Password")}
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
+              }}
+              placeholder={editing ? t("Leave blank to keep") : t("At least 8 characters")}
+              error={errors.password}
+              required={!editing}
+            />
+            <FormInput
+              label={t("Phone")}
+              value={phone ?? ""}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection
+          icon={ShieldCheck}
+          title={t("Role and link")}
+          description={t("What the user can see and whose schedule belongs to them.")}
+          open={openSection === "role"}
+          onToggle={() => toggleSection("role")}
         >
-          <Save className="w-4 h-4" strokeWidth={2.4} />
-          {saving ? "Salvando…" : editing ? "Salvar alterações" : "Criar usuário"}
-        </button>
-      </div>
-    </form>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+            <FormSelect
+              label={t("Role")}
+              value={role}
+              onChange={(value: string) => setRole(value)}
+              placeholder={t("Select")}
+              required
+              options={Object.entries(ROLE_LABELS).map(([value, label]) => ({ value, label }))}
+            />
+            <FormSelect
+              label={t("Status")}
+              value={status}
+              onChange={(value: string) => setStatus(value)}
+              placeholder={t("Select")}
+              options={[
+                { value: "active", label: t("Active") },
+                { value: "inactive", label: t("Inactive") },
+              ]}
+            />
+            <div className="md:col-span-2 flex flex-col gap-[6px]">
+              <FormSelect
+                label={t("Linked volunteer")}
+                value={volunteerId}
+                onChange={(value: string) => setVolunteerId(value)}
+                placeholder={t("None")}
+                searchable
+                options={volunteers.map((v) => ({ value: v.id, label: v.name }))}
+              />
+              <span className="text-[11px] text-[#9CA3AF]">
+                {t("Without a link, the user has no personal schedule and cannot confirm attendance.")}
+              </span>
+            </div>
+          </div>
+        </FormSection>
+      </FormCard>
+    </main>
   );
 }

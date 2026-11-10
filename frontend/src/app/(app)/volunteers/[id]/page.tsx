@@ -3,16 +3,16 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   Users, Pencil, Mail, Phone, CalendarCheck, CalendarOff, Award, Clock,
 } from "lucide-react";
-import PageHeader from "@/components/escalas/PageHeader";
+import DetailHero from "@/components/escalas/DetailHero";
 import StatusBadge from "@/components/escalas/StatusBadge";
 import VolunteerAvatar from "@/components/escalas/VolunteerAvatar";
 import AvailabilityEditor from "@/components/escalas/AvailabilityEditor";
 import EmptyState from "@/components/escalas/EmptyState";
-import BackButton from "@/components/BackButton";
 import { VolunteersService } from "@/services/volunteers.service";
 import type {
   Absence, Availability, Ministry, MinistryFunction, Skill, Volunteer, VolunteerStats,
@@ -21,6 +21,7 @@ import { ABSENCE_TYPE_LABELS, formatDate, relativeDays } from "@/lib/escalas-for
 
 export default function VolunteerDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
 
   const [volunteer, setVolunteer] = useState<Volunteer | null>(null);
   const [ministries, setMinistries] = useState<Ministry[]>([]);
@@ -62,13 +63,27 @@ export default function VolunteerDetailPage() {
   }
 
   return (
-    <main className="p-6 pb-5 flex-1 flex flex-col gap-4">
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-        <div className="px-6 pt-5">
-          <BackButton href="/volunteers" />
-        </div>
+    <main className="p-4 md:py-5 px-4 md:px-8 flex-1 flex flex-col max-w-screen-2xl mx-auto w-full gap-4">
+      <DetailHero
+        icon={Users}
+        breadcrumb={{ label: t("Volunteers"), href: "/volunteers" }}
+        title={volunteer.name}
+        subtitle={t("Volunteer profile, availability and history")}
+        backHref="/volunteers"
+        backTitle={t("Back to Volunteers")}
+        actions={
+          <Link
+            href={`/volunteers/${volunteer.id}/edit`}
+            className="h-[38px] px-3.5 sm:px-4 bg-white hover:bg-purple-50 text-[#6D28D9] font-bold text-xs sm:text-sm rounded-[10px] transition-all shadow-md flex items-center gap-2 cursor-pointer active:scale-[0.98]"
+          >
+            <Pencil className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={2.4} />
+            <span>{t("Edit volunteer")}</span>
+          </Link>
+        }
+      />
 
-        <div className="px-6 pt-4 flex items-start gap-4">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-6 pt-5 flex items-start gap-4">
           <VolunteerAvatar name={volunteer.name} photoUrl={volunteer.photo_url} size={56} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -93,13 +108,6 @@ export default function VolunteerDetailPage() {
               )}
             </div>
           </div>
-          <Link
-            href={`/volunteers/${volunteer.id}/edit`}
-            className="inline-flex items-center gap-1.5 px-3 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors shrink-0"
-          >
-            <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
-            Editar
-          </Link>
         </div>
 
         {stats && (

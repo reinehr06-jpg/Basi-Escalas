@@ -5,56 +5,59 @@ import {
   Settings, UsersRound,
 } from "lucide-react";
 
-/** Admin e coordenação: visão completa de todos os ministérios. */
+/**
+ * Admin e coordenação: visão completa de todos os ministérios.
+ * Os rótulos são chaves de tradução — a Sidebar aplica t() neles.
+ */
 export const adminMenu: NavSection[] = [
   {
-    title: "ESCALAS",
+    title: "SCHEDULING",
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-      { label: "Calendário", icon: CalendarDays, href: "/events" },
-      { label: "Escalas", icon: ClipboardList, href: "/schedules" },
-      { label: "Confirmações", icon: CheckCheck, href: "/confirmations" },
+      { label: "Calendar", icon: CalendarDays, href: "/events" },
+      { label: "Rosters", icon: ClipboardList, href: "/schedules" },
+      { label: "Confirmations", icon: CheckCheck, href: "/confirmations" },
     ],
   },
   {
-    title: "OPERAÇÃO",
+    title: "OPERATION",
     items: [
-      { label: "Presenças e check-in", icon: UserCheck, href: "/attendance" },
-      { label: "Trocas e substituições", icon: Repeat2, href: "/swaps" },
-      { label: "Ausências", icon: CalendarOff, href: "/absences" },
+      { label: "Attendance and check-in", icon: UserCheck, href: "/attendance" },
+      { label: "Swaps and replacements", icon: Repeat2, href: "/swaps" },
+      { label: "Absences", icon: CalendarOff, href: "/absences" },
     ],
   },
   {
-    title: "CADASTROS",
+    title: "REGISTRATIONS",
     items: [
-      { label: "Voluntários", icon: Users, href: "/volunteers" },
+      { label: "Volunteers", icon: Users, href: "/volunteers" },
       {
-        label: "Estrutura", icon: Layers, isAccordion: true,
+        label: "Structure", icon: Layers, isAccordion: true,
         subItems: [
-          { label: "Ministérios", href: "/ministries" },
-          { label: "Funções", href: "/functions" },
+          { label: "Ministries", href: "/ministries" },
+          { label: "Functions", href: "/functions" },
         ],
       },
       {
-        label: "Capacitação", icon: GraduationCap, isAccordion: true,
+        label: "Training", icon: GraduationCap, isAccordion: true,
         subItems: [
-          { label: "Habilidades", href: "/skills" },
-          { label: "Treinamentos", href: "/trainings" },
+          { label: "Skills", href: "/skills" },
+          { label: "Training sessions", href: "/trainings" },
         ],
       },
     ],
   },
   {
-    title: "ANÁLISE",
+    title: "ANALYSIS",
     items: [
-      { label: "Relatórios", icon: BarChart3, href: "/reports" },
+      { label: "Reports", icon: BarChart3, href: "/reports" },
     ],
   },
   {
-    title: "CONFIGURAÇÕES",
+    title: "SETTINGS",
     items: [
-      { label: "Usuários", icon: UsersRound, href: "/systemUsers" },
-      { label: "Configurações", icon: Settings, href: "/settings" },
+      { label: "Users", icon: UsersRound, href: "/systemUsers" },
+      { label: "Settings", icon: Settings, href: "/settings" },
     ],
   },
 ];

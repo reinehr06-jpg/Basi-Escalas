@@ -141,12 +141,12 @@ export default function FunctionsPage() {
             </div>
           </div>
 
-          <ResponsiveTableCard minWidth="680px">
-            <div className="grid grid-cols-[1fr_180px_110px_100px_120px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+          <ResponsiveTableCard minWidth="760px">
+            <div className="grid grid-cols-[100px_1.6fr_1.4fr_110px_110px] min-w-[760px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+              <span className="text-xs font-bold text-[#6B7280]">Situação</span>
               <span className="text-xs font-bold text-[#6B7280]">Função</span>
               <span className="text-xs font-bold text-[#6B7280]">Ministério</span>
               <span className="text-xs font-bold text-[#6B7280] text-center">Por escala</span>
-              <span className="text-xs font-bold text-[#6B7280] text-center">Situação</span>
               <span className="text-xs font-bold text-[#6B7280] text-center">Ações</span>
             </div>
 
@@ -160,27 +160,27 @@ export default function FunctionsPage() {
                 return (
                   <div
                     key={fn.id}
-                    className="grid grid-cols-[1fr_180px_110px_100px_120px] items-center px-6 min-h-[48px] py-2 bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
+                    className="grid grid-cols-[100px_1.6fr_1.4fr_110px_110px] min-w-[760px] items-center px-6 h-[42px] bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
                   >
-                    <div className="min-w-0 flex items-center gap-2">
-                      <Link href={`/functions/${fn.id}/edit`} className="text-[13px] font-[600] text-[#6D28D9] hover:underline truncate">
+                    <div>
+                      <StatusBadge status={fn.status} />
+                    </div>
+
+                    <div className="min-w-0 flex items-center gap-2 pr-4">
+                      <Link href={`/functions/${fn.id}/edit`} className="text-xs font-[600] text-[#6D28D9] truncate cursor-pointer hover:underline">
                         {fn.name}
                       </Link>
                       {fn.is_leadership && <StatusBadge label="Liderança" tone="purple" />}
                     </div>
 
-                    <div className="min-w-0 flex items-center gap-1.5">
-                      <span className="w-1.5 h-5 rounded-full shrink-0" style={{ backgroundColor: ministry?.color ?? "#D1D5DB" }} />
-                      <Link href={`/ministries/${fn.ministry_id}`} className="text-[12px] text-[#4B5563] hover:underline truncate">
-                        {ministry?.name ?? "—"}
+                    <div className="min-w-0 flex items-center gap-1.5 pr-4">
+                      <span className="w-1.5 h-4 rounded-full shrink-0" style={{ backgroundColor: ministry?.color ?? "#D1D5DB" }} />
+                      <Link href={`/ministries/${fn.ministry_id}`} className="text-xs font-[500] text-[#4B5563] truncate hover:underline">
+                        {ministry?.name ?? "-"}
                       </Link>
                     </div>
 
-                    <span className="text-[12px] text-[#4B5563] text-center tabular-nums">{fn.default_quantity}</span>
-
-                    <div className="flex justify-center">
-                      <StatusBadge status={fn.status} />
-                    </div>
+                    <span className="text-xs font-[500] text-[#4B5563] text-center tabular-nums">{fn.default_quantity}</span>
 
                     <div className="flex items-center justify-center gap-1.5">
                       <Link

@@ -109,11 +109,12 @@ export default function SystemUsersPage() {
             </div>
           </div>
 
-          <ResponsiveTableCard minWidth="640px">
-            <div className="grid grid-cols-[1fr_200px_110px_120px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+          <ResponsiveTableCard minWidth="800px">
+            <div className="grid grid-cols-[110px_1.4fr_1.8fr_200px_110px] min-w-[800px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+              <span className="text-xs font-bold text-[#6B7280]">Situação</span>
               <span className="text-xs font-bold text-[#6B7280]">Usuário</span>
+              <span className="text-xs font-bold text-[#6B7280]">E-mail</span>
               <span className="text-xs font-bold text-[#6B7280]">Papel</span>
-              <span className="text-xs font-bold text-[#6B7280] text-center">Situação</span>
               <span className="text-xs font-bold text-[#6B7280] text-center">Ações</span>
             </div>
 
@@ -125,22 +126,21 @@ export default function SystemUsersPage() {
               items.map((user) => (
                 <div
                   key={user.id}
-                  className="grid grid-cols-[1fr_200px_110px_120px] items-center px-6 min-h-[48px] py-2 bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
+                  className="grid grid-cols-[110px_1.4fr_1.8fr_200px_110px] min-w-[800px] items-center px-6 h-[42px] bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
                 >
-                  <div className="min-w-0">
-                    <Link href={`/systemUsers/${user.id}/edit`} className="text-[13px] font-[600] text-[#6D28D9] hover:underline block truncate">
-                      {user.name}
-                    </Link>
-                    <p className="text-[11px] text-[#6B7280] truncate">{user.email}</p>
-                  </div>
-
-                  <span className="text-[12px] text-[#4B5563] truncate">
-                    {ROLE_LABELS[user.role] ?? user.role}
-                  </span>
-
-                  <div className="flex justify-center">
+                  <div>
                     <StatusBadge status={user.status ?? "active"} />
                   </div>
+
+                  <Link href={`/systemUsers/${user.id}/edit`} className="text-xs font-[600] text-[#6D28D9] truncate pr-4 cursor-pointer hover:underline">
+                    {user.name}
+                  </Link>
+
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{user.email}</span>
+
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">
+                    {ROLE_LABELS[user.role] ?? user.role}
+                  </span>
 
                   <div className="flex items-center justify-center gap-1.5">
                     <Link

@@ -158,11 +158,13 @@ export default function SchedulesPage() {
           </div>
         </div>
 
-        <ResponsiveTableCard minWidth="680px">
-          <div className="grid grid-cols-[1fr_200px_110px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
-            <span className="text-xs font-bold text-[#6B7280]">Escala</span>
+        <ResponsiveTableCard minWidth="800px">
+          <div className="grid grid-cols-[110px_1.3fr_1.7fr_150px_100px] min-w-[800px] items-center px-6 h-10 border-t border-b border-[#F1F1F4] bg-[#FCFCFD]">
+            <span className="text-xs font-bold text-[#6B7280]">Situação</span>
+            <span className="text-xs font-bold text-[#6B7280]">Ministério</span>
             <span className="text-xs font-bold text-[#6B7280]">Evento</span>
-            <span className="text-xs font-bold text-[#6B7280] text-center">Situação</span>
+            <span className="text-xs font-bold text-[#6B7280]">Data</span>
+            <span className="text-xs font-bold text-[#6B7280] text-center">Funções</span>
           </div>
 
           {loading ? (
@@ -187,30 +189,26 @@ export default function SchedulesPage() {
                 <Link
                   key={schedule.id}
                   href={`/schedules/${schedule.id}`}
-                  className="grid grid-cols-[1fr_200px_110px] items-center px-6 min-h-[52px] py-2 bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
+                  className="grid grid-cols-[110px_1.3fr_1.7fr_150px_100px] min-w-[800px] items-center px-6 h-[42px] bg-white border-b border-[#F1F1F4] hover:bg-[#FAFAFC] transition-colors last:border-b-0"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="w-1.5 h-8 rounded-full shrink-0" style={{ backgroundColor: ministry?.color ?? "#6D28D9" }} />
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-[600] text-[#6D28D9] truncate">
-                        {ministry?.name ?? schedule.name}
-                      </p>
-                      <p className="text-[11px] text-[#6B7280] truncate">
-                        {schedule.slots?.length ?? 0} função(ões)
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="min-w-0">
-                    <p className="text-[12px] text-[#1A1A2E] truncate">{event?.title ?? "—"}</p>
-                    <p className="text-[11px] text-[#6B7280] truncate">
-                      {event ? formatEventStamp(event.starts_at) : ""}
-                    </p>
-                  </div>
-
-                  <div className="flex justify-center">
+                  <div>
                     <StatusBadge status={schedule.status} />
                   </div>
+
+                  <div className="flex items-center gap-2 min-w-0 pr-4">
+                    <span className="w-1.5 h-4 rounded-full shrink-0" style={{ backgroundColor: ministry?.color ?? "#6D28D9" }} />
+                    <span className="text-xs font-[600] text-[#6D28D9] truncate">
+                      {ministry?.name ?? schedule.name}
+                    </span>
+                  </div>
+
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">{event?.title ?? "-"}</span>
+                  <span className="text-xs font-[500] text-[#4B5563] truncate pr-4">
+                    {event ? formatEventStamp(event.starts_at) : "-"}
+                  </span>
+                  <span className="text-xs font-[500] text-[#4B5563] text-center tabular-nums">
+                    {schedule.slots?.length ?? 0}
+                  </span>
                 </Link>
               );
             })

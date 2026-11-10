@@ -2,9 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Save, Trash2, Plus } from "lucide-react";
-import CustomSelect from "@/components/CustomSelect";
+import { Users, Layers, Award, SlidersHorizontal, Trash2 } from "lucide-react";
+import FormInput from "@/components/ui/FormInput";
+import FormSelect from "@/components/ui/FormSelect";
+import { FormCard, FormHero, FormSection } from "@/components/escalas/FormShell";
 import { VolunteersService } from "@/services/volunteers.service";
 import { MinistriesService } from "@/services/ministries.service";
 import { FunctionsService } from "@/services/functions.service";
@@ -13,13 +16,15 @@ import type { Membership, Ministry, MinistryFunction, Skill, Volunteer } from "@
 import { WEEKDAYS } from "@/types/escalas";
 import { toInputDate } from "@/lib/escalas-format";
 
-interface Props {
-  volunteer?: Volunteer;
-}
+const BACK = "/volunteers";
 
-export default function VolunteerForm({ volunteer }: Props) {
+export default function VolunteerForm({ volunteer }: { volunteer?: Volunteer }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const editing = Boolean(volunteer);
+
+  const [openSection, setOpenSection] = useState<string | null>("info");
+  const toggleSection = (key: string) => setOpenSection((prev) => (prev === key ? null : key));
 
   const [name, setName] = useState(volunteer?.name ?? "");
   const [email, setEmail] = useState(volunteer?.email ?? "");
@@ -29,9 +34,7 @@ export default function VolunteerForm({ volunteer }: Props) {
   const [notes, setNotes] = useState(volunteer?.notes ?? "");
 
   const [memberships, setMemberships] = useState<Membership[]>(volunteer?.memberships ?? []);
-  const [skillIds, setSkillIds] = useState<string[]>(
-    (volunteer?.skills ?? []).map((s) => s.skill_id),
-  );
+  const [skillIds, setSkillIds] = useState<string[]>((volunteer?.skills ?? []).map((s) => s.skill_id));
 
   const [maxPerMonth, setMaxPerMonth] = useState(String(volunteer?.preferences?.max_per_month ?? ""));
   const [minRest, setMinRest] = useState(String(volunteer?.preferences?.min_rest_days ?? ""));
@@ -43,25 +46,17 @@ export default function VolunteerForm({ volunteer }: Props) {
   const [functions, setFunctions] = useState<MinistryFunction[]>([]);
   const [skills, setSkills] = useState<Skill[]>([]);
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    MinistriesService.list({ itemsPerPage: 200, status: "active" })
-      .then((res) => setMinistries(res.data ?? []))
-      .catch(() => setMinistries([]));
-    FunctionsService.list({ itemsPerPage: 500, status: "active" })
-      .then((res) => setFunctions(res.data ?? []))
-      .catch(() => setFunctions([]));
-    SkillsService.list({ itemsPerPage: 200 })
-      .then((res) => setSkills(res.data ?? []))
-      .catch(() => setSkills([]));
+    MinistriesService.list({ itemsPerPage: 200, status: "active" }).then((r) => setMinistries(r.data ?? [])).catch(() => setMinistries([]));
+    FunctionsService.list({ itemsPerPage: 500, status: "active" }).then((r) => setFunctions(r.data ?? [])).catch(() => setFunctions([]));
+    SkillsService.list({ itemsPerPage: 200 }).then((r) => setSkills(r.data ?? [])).catch(() => setSkills([]));
   }, []);
 
   const functionsByMinistry = useMemo(() => {
     const map: Record<string, MinistryFunction[]> = {};
-    for (const fn of functions) {
-      (map[fn.ministry_id] ??= []).push(fn);
-    }
+    for (const fn of functions) (map[fn.ministry_id] ??= []).push(fn);
     return map;
   }, [functions]);
 
@@ -69,9 +64,15 @@ export default function VolunteerForm({ volunteer }: Props) {
     (m) => !memberships.some((membership) => membership.ministry_id === m.id),
   );
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     setErrors({});
+
+    if (!name.trim()) {
+      setErrors({ name: t("Required field") });
+      setOpenSection("info");
+      return;
+    }
+
     setSaving(true);
 
     // Preserva nível e certificação das habilidades que o voluntário já tinha.
@@ -103,261 +104,226 @@ export default function VolunteerForm({ volunteer }: Props) {
       router.refresh();
     } catch (err) {
       const apiError = err as Error & { errors?: Record<string, string[]> };
-      setErrors(apiError.errors ?? {});
-      toast.error(apiError.message || "Não foi possível salvar o voluntário.");
+      setErrors(Object.fromEntries(Object.entries(apiError.errors ?? {}).map(([k, v]) => [k, v[0]])));
+      toast.error(apiError.message || t("Could not save the volunteer."));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-6 p-6">
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col gap-[6px] md:col-span-2">
-          <label htmlFor="v-name" className="text-[13px] font-[600] text-[#4B5563]">
-            Nome completo <span className="text-[#EF4444] ml-0.5">*</span>
-          </label>
-          <input
-            id="v-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`h-[42px] px-3 rounded-lg border text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9] ${
-              errors.name ? "border-[#EF4444]" : "border-[#E5E7EB]"
-            }`}
-            required
-          />
-          {errors.name && <span className="text-[11px] text-[#EF4444]">{errors.name[0]}</span>}
-        </div>
+    <main className="p-6 pb-5 flex-1 flex flex-col">
+      <FormHero
+        icon={Users}
+        title={editing ? t("Edit volunteer") : t("New volunteer")}
+        subtitle={t("Personal data, ministries, functions and scheduling preferences.")}
+        backHref={BACK}
+        requiredNote={t("Required fields to save the volunteer.")}
+        onSave={handleSave}
+        saving={saving}
+        disabled={!name.trim()}
+        saveLabel={editing ? t("Save changes") : t("Save volunteer")}
+      />
 
-        <div className="flex flex-col gap-[6px]">
-          <label htmlFor="v-email" className="text-[13px] font-[600] text-[#4B5563]">E-mail</label>
-          <input
-            id="v-email"
-            type="email"
-            value={email ?? ""}
-            onChange={(e) => setEmail(e.target.value)}
-            className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-          />
-        </div>
-
-        <div className="flex flex-col gap-[6px]">
-          <label htmlFor="v-phone" className="text-[13px] font-[600] text-[#4B5563]">Telefone</label>
-          <input
-            id="v-phone"
-            value={phone ?? ""}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+55 51 99999-0000"
-            className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-          />
-        </div>
-
-        <div className="flex flex-col gap-[6px]">
-          <label htmlFor="v-birth" className="text-[13px] font-[600] text-[#4B5563]">Nascimento</label>
-          <input
-            id="v-birth"
-            type="date"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
-          />
-        </div>
-
-        <div className="flex flex-col gap-[6px]">
-          <label className="text-[13px] font-[600] text-[#4B5563]">Situação</label>
-          <CustomSelect
-            value={status}
-            onChange={(value: string) => setStatus(value as typeof status)}
-            className="h-[42px]"
-            options={[
-              { value: "active", label: "Ativo" },
-              { value: "on_leave", label: "Afastado" },
-              { value: "inactive", label: "Inativo" },
-            ]}
-          />
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-[13px] font-bold text-[#1A1A2E]">Ministérios e funções</h2>
-        <p className="text-[11px] text-[#6B7280] mt-0.5 mb-3">
-          O voluntário só aparece como candidato nas funções marcadas aqui.
-        </p>
-
-        <div className="flex flex-col gap-3">
-          {memberships.map((membership, index) => {
-            const ministry = ministries.find((m) => m.id === membership.ministry_id);
-            const options = functionsByMinistry[membership.ministry_id] ?? [];
-
-            return (
-              <div key={membership.ministry_id} className="rounded-xl border border-[#E5E7EB] p-4">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-1.5 h-6 rounded-full shrink-0" style={{ backgroundColor: ministry?.color ?? "#6D28D9" }} />
-                    <p className="text-[13px] font-semibold text-[#1A1A2E] truncate">
-                      {ministry?.name ?? "Ministério removido"}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setMemberships(memberships.filter((_, i) => i !== index))}
-                    className="w-8 h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center hover:bg-[#EF4444]/20 transition-colors shrink-0"
-                    aria-label={`Remover ${ministry?.name ?? "ministério"}`}
-                  >
-                    <Trash2 className="w-3.5 h-3.5 text-[#EF4444]" strokeWidth={2.2} />
-                  </button>
-                </div>
-
-                <CustomSelect
-                  value={membership.function_ids}
-                  onChange={(value: string[]) =>
-                    setMemberships(
-                      memberships.map((m, i) => (i === index ? { ...m, function_ids: value } : m)),
-                    )
-                  }
-                  placeholder={options.length ? "Selecione as funções" : "Este ministério ainda não tem funções"}
-                  multiple
-                  searchable
-                  disabled={options.length === 0}
-                  className="h-[42px]"
-                  options={options.map((fn) => ({ value: fn.id, label: fn.name }))}
-                />
-              </div>
-            );
-          })}
-
-          {availableMinistries.length > 0 && (
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <CustomSelect
-                  value=""
-                  onChange={(value: string) => {
-                    if (!value) return;
-                    setMemberships([
-                      ...memberships,
-                      { ministry_id: value, function_ids: [], is_leader: false },
-                    ]);
-                  }}
-                  placeholder="Adicionar ministério"
-                  searchable
-                  className="h-[42px]"
-                  options={availableMinistries.map((m) => ({ value: m.id, label: m.name }))}
-                />
-              </div>
-              <Plus className="w-4 h-4 text-[#9CA3AF] shrink-0" />
+      <FormCard>
+        <FormSection
+          icon={Users}
+          title={t("Personal information")}
+          description={t("How to identify and contact the volunteer.")}
+          required
+          open={openSection === "info"}
+          onToggle={() => toggleSection("info")}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+            <FormInput
+              label={t("Full name")}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (errors.name) setErrors((prev) => ({ ...prev, name: "" }));
+              }}
+              error={errors.name}
+              required
+            />
+            <FormSelect
+              label={t("Status")}
+              value={status}
+              onChange={(value: string) => setStatus(value as typeof status)}
+              placeholder={t("Select")}
+              options={[
+                { value: "active", label: t("Active") },
+                { value: "on_leave", label: t("On leave") },
+                { value: "inactive", label: t("Inactive") },
+              ]}
+            />
+            <FormInput
+              label={t("Email")}
+              type="email"
+              value={email ?? ""}
+              onChange={(e) => setEmail(e.target.value)}
+              error={errors.email}
+            />
+            <FormInput
+              label={t("Phone")}
+              value={phone ?? ""}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+55 51 99999-0000"
+            />
+            <FormInput
+              label={t("Birth date")}
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+            />
+            <div className="md:col-span-2 flex flex-col gap-[6px] w-full">
+              <label className="text-[13px] font-[600] text-[#4B5563]">{t("Notes")}</label>
+              <textarea
+                value={notes ?? ""}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="w-full px-[12px] py-[10px] bg-white border border-[#E5E7EB] rounded-[8px] text-[13px] text-[#1A1A2E] placeholder-[#9CA3AF] outline-none transition-all focus:ring-1 focus:ring-[#6D28D9] focus:border-[#6D28D9] hover:border-[#D1D5DB] resize-y"
+              />
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </FormSection>
 
-      <section>
-        <h2 className="text-[13px] font-bold text-[#1A1A2E]">Habilidades</h2>
-        <p className="text-[11px] text-[#6B7280] mt-0.5 mb-3">
-          Usadas para alertar quando uma função exige algo que a pessoa não tem.
-        </p>
-        <CustomSelect
-          value={skillIds}
-          onChange={(value: string[]) => setSkillIds(value)}
-          placeholder="Nenhuma habilidade registrada"
-          multiple
-          searchable
-          className="h-[42px]"
-          options={skills.map((s) => ({ value: s.id, label: s.name }))}
-        />
-      </section>
+        <FormSection
+          icon={Layers}
+          title={t("Ministries and functions")}
+          description={t("The volunteer only shows up as a candidate for the functions marked here.")}
+          open={openSection === "ministries"}
+          onToggle={() => toggleSection("ministries")}
+        >
+          <div className="flex flex-col gap-3 mb-2">
+            {memberships.map((membership, index) => {
+              const ministry = ministries.find((m) => m.id === membership.ministry_id);
+              const options = functionsByMinistry[membership.ministry_id] ?? [];
 
-      <section>
-        <h2 className="text-[13px] font-bold text-[#1A1A2E]">Preferências de escala</h2>
-        <p className="text-[11px] text-[#6B7280] mt-0.5 mb-3">
-          Em branco, vale a regra do ministério.
-        </p>
+              return (
+                <div key={membership.ministry_id} className="rounded-[10px] border border-[#E5E7EB] bg-white p-4">
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-1.5 h-6 rounded-full shrink-0" style={{ backgroundColor: ministry?.color ?? "#6D28D9" }} />
+                      <p className="text-[13px] font-semibold text-[#1A1A2E] truncate">
+                        {ministry?.name ?? t("Removed ministry")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMemberships(memberships.filter((_, i) => i !== index))}
+                      className="w-8 h-8 rounded-lg bg-[#EF4444]/10 flex items-center justify-center hover:bg-[#EF4444]/20 transition-colors shrink-0"
+                      aria-label={t("Remove")}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-[#EF4444]" strokeWidth={2.2} />
+                    </button>
+                  </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="flex flex-col gap-[6px]">
-            <label htmlFor="v-max" className="text-[13px] font-[600] text-[#4B5563]">Máximo por mês</label>
-            <input
-              id="v-max"
+                  <FormSelect
+                    label={t("Functions")}
+                    value={membership.function_ids}
+                    onChange={(value: string[]) =>
+                      setMemberships(memberships.map((m, i) => (i === index ? { ...m, function_ids: value } : m)))
+                    }
+                    placeholder={options.length ? t("Select the functions") : t("This ministry has no functions yet")}
+                    multiple
+                    searchable
+                    disabled={options.length === 0}
+                    options={options.map((fn) => ({ value: fn.id, label: fn.name }))}
+                  />
+                </div>
+              );
+            })}
+
+            {availableMinistries.length > 0 && (
+              <FormSelect
+                label={t("Add ministry")}
+                value=""
+                onChange={(value: string) => {
+                  if (!value) return;
+                  setMemberships([...memberships, { ministry_id: value, function_ids: [], is_leader: false }]);
+                }}
+                placeholder={t("Select a ministry")}
+                searchable
+                options={availableMinistries.map((m) => ({ value: m.id, label: m.name }))}
+              />
+            )}
+          </div>
+        </FormSection>
+
+        <FormSection
+          icon={Award}
+          title={t("Skills")}
+          description={t("Used to warn when a function requires something the person does not have.")}
+          open={openSection === "skills"}
+          onToggle={() => toggleSection("skills")}
+        >
+          <div className="grid grid-cols-1 gap-6 mb-2">
+            <FormSelect
+              label={t("Skills")}
+              value={skillIds}
+              onChange={(value: string[]) => setSkillIds(value)}
+              placeholder={t("No skill registered")}
+              multiple
+              searchable
+              options={skills.map((s) => ({ value: s.id, label: s.name }))}
+            />
+          </div>
+        </FormSection>
+
+        <FormSection
+          icon={SlidersHorizontal}
+          title={t("Scheduling preferences")}
+          description={t("Left blank, the ministry rule applies.")}
+          open={openSection === "preferences"}
+          onToggle={() => toggleSection("preferences")}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
+            <FormInput
+              label={t("Maximum per month")}
               type="number"
               min={0}
               value={maxPerMonth}
               onChange={(e) => setMaxPerMonth(e.target.value)}
-              placeholder="Sem limite próprio"
-              className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
+              placeholder={t("No personal limit")}
             />
-          </div>
-
-          <div className="flex flex-col gap-[6px]">
-            <label htmlFor="v-rest" className="text-[13px] font-[600] text-[#4B5563]">Folga mínima (dias)</label>
-            <input
-              id="v-rest"
+            <FormInput
+              label={t("Minimum rest (days)")}
               type="number"
               min={0}
               value={minRest}
               onChange={(e) => setMinRest(e.target.value)}
-              placeholder="Usar a regra do ministério"
-              className="h-[42px] px-3 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9]"
+              placeholder={t("Use the ministry rule")}
             />
-          </div>
-
-          <div className="flex flex-col gap-[6px] sm:col-span-2">
-            <span className="text-[13px] font-[600] text-[#4B5563]">Dias que prefere servir</span>
-            <div className="flex flex-wrap gap-1.5">
-              {WEEKDAYS.map((label, index) => {
-                const active = preferredWeekdays.includes(index);
-                return (
-                  <button
-                    key={label}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() =>
-                      setPreferredWeekdays(
+            <div className="md:col-span-2 flex flex-col gap-[6px] w-full">
+              <span className="text-[13px] font-[600] text-[#4B5563]">{t("Preferred days to serve")}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {WEEKDAYS.map((label, index) => {
+                  const active = preferredWeekdays.includes(index);
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() =>
+                        setPreferredWeekdays(
+                          active ? preferredWeekdays.filter((d) => d !== index) : [...preferredWeekdays, index],
+                        )
+                      }
+                      className={`h-[42px] px-4 rounded-[8px] border text-[13px] font-semibold transition-colors ${
                         active
-                          ? preferredWeekdays.filter((d) => d !== index)
-                          : [...preferredWeekdays, index],
-                      )
-                    }
-                    className={`h-9 px-3 rounded-lg border text-[12px] font-semibold transition-colors ${
-                      active
-                        ? "bg-[#6D28D9] text-white border-[#6D28D9]"
-                        : "bg-white text-[#4B5563] border-[#E5E7EB] hover:bg-[#F9FAFB]"
-                    }`}
-                  >
-                    {label.slice(0, 3)}
-                  </button>
-                );
-              })}
+                          ? "bg-[#6D28D9] text-white border-[#6D28D9]"
+                          : "bg-white text-[#4B5563] border-[#E5E7EB] hover:border-[#D1D5DB]"
+                      }`}
+                    >
+                      {label.slice(0, 3)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-[6px]">
-        <label htmlFor="v-notes" className="text-[13px] font-[600] text-[#4B5563]">Observações</label>
-        <textarea
-          id="v-notes"
-          value={notes ?? ""}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-          className="px-3 py-2.5 rounded-lg border border-[#E5E7EB] text-[13px] text-[#1A1A2E] outline-none focus:border-[#6D28D9] resize-y"
-        />
-      </section>
-
-      <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F1F1F4]">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-4 h-9 rounded-lg border border-[#E5E7EB] bg-white text-[13px] font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-colors"
-        >
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={saving || !name.trim()}
-          className="inline-flex items-center gap-1.5 px-4 h-9 rounded-lg bg-[#6D28D9] text-white text-[13px] font-semibold hover:bg-[#5B21B6] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-        >
-          <Save className="w-4 h-4" strokeWidth={2.4} />
-          {saving ? "Salvando…" : editing ? "Salvar alterações" : "Cadastrar voluntário"}
-        </button>
-      </div>
-    </form>
+        </FormSection>
+      </FormCard>
+    </main>
   );
 }

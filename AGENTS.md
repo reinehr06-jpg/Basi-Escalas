@@ -25,6 +25,32 @@ O front herda o padrão visual do `basileia-front` — mantenha-o.
 
 ## Front-end
 
+O layout de cada tipo de tela é o do `basileia-front`. Não invente estrutura nova:
+abra a tela equivalente no repositório de referência e copie a marcação.
+
+**Lista** — cartão branco ocupando a área, cabeçalho com pastilha pastel de 40px:
+`<main className="p-6 pb-5 flex-1 flex flex-col">` › `bg-white rounded-2xl flex-1 border border-[#E5E7EB]`.
+A tabela é densa, **uma linha por registro**: cabeçalho `h-10 bg-[#FCFCFD]`, linhas
+`h-[42px]`, texto `text-xs`, cada coluna com um valor truncado. A primeira coluna é a
+situação, em pastilha. Nada de linha com título e subtítulo embaixo.
+
+**Formulário** — banner roxo (`FormHero`) com voltar, ícone translúcido, título,
+aviso de obrigatórios e os botões Cancelar/Salvar **dentro do banner**; abaixo,
+`FormCard` com seções sanfonadas (`FormSection`). Campos sempre por `FormInput` /
+`FormSelect`. O componente do formulário é quem rende o `<main>`; a página é só
+`return <XForm />`.
+
+**Detalhe** — `DetailHero` (banner roxo com trilha de navegação e ações em branco),
+seguido do cartão de identidade (`bg-white rounded-2xl border border-gray-200 p-4`)
+com avatar, campos em linha e os blocos de número à direita.
+
+**Dashboard** — banner roxo com saudação e filtro de período, quatro cartões
+`p-[16px_18px]` com o ícone de 42px à direita, e gráficos em Recharts.
+
+- **i18n:** o app roda em `pt-BR` com **chaves em inglês**. Todo texto visível passa por
+  `t("English key")` e a tradução entra em `src/locales/pt-BR.json` e `pt.json`. Antes de
+  criar uma chave, confira se já existe com outro sentido (`Schedule` já é "Agendar",
+  `Present` é "Presente") e, se for o caso, use uma chave própria.
 - **Select:** sempre `CustomSelect` (`@/components/CustomSelect`), `searchable` com 4+
   opções, `className="h-[42px]"` em formulário e `h-9` em filtro.
 - Listas usam `ResponsiveTableCard` + `Pagination` + `usePersistedState`, e exclusão

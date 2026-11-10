@@ -7,34 +7,34 @@ import {
 /** Líder de ministério: mesma operação, restrita aos ministérios que lidera. */
 export const ministryLeaderMenu: NavSection[] = [
   {
-    title: "ESCALAS",
+    title: "SCHEDULING",
     items: [
       { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-      { label: "Calendário", icon: CalendarDays, href: "/events" },
-      { label: "Escalas", icon: ClipboardList, href: "/schedules" },
-      { label: "Confirmações", icon: CheckCheck, href: "/confirmations" },
+      { label: "Calendar", icon: CalendarDays, href: "/events" },
+      { label: "Rosters", icon: ClipboardList, href: "/schedules" },
+      { label: "Confirmations", icon: CheckCheck, href: "/confirmations" },
     ],
   },
   {
-    title: "OPERAÇÃO",
+    title: "OPERATION",
     items: [
-      { label: "Presenças e check-in", icon: UserCheck, href: "/attendance" },
-      { label: "Trocas e substituições", icon: Repeat2, href: "/swaps" },
-      { label: "Ausências", icon: CalendarOff, href: "/absences" },
-      { label: "Voluntários", icon: Users, href: "/volunteers" },
+      { label: "Attendance and check-in", icon: UserCheck, href: "/attendance" },
+      { label: "Swaps and replacements", icon: Repeat2, href: "/swaps" },
+      { label: "Absences", icon: CalendarOff, href: "/absences" },
+      { label: "Volunteers", icon: Users, href: "/volunteers" },
     ],
   },
   {
-    title: "MINHA AGENDA",
+    title: "MY SCHEDULE",
     items: [
-      { label: "Minhas escalas", icon: CalendarClock, href: "/me" },
+      { label: "My rosters", icon: CalendarClock, href: "/me" },
     ],
   },
   {
-    title: "CONFIGURAÇÕES",
+    title: "SETTINGS",
     items: [
-      { label: "Relatórios", icon: BarChart3, href: "/reports" },
-      { label: "Configurações", icon: Settings, href: "/settings" },
+      { label: "Reports", icon: BarChart3, href: "/reports" },
+      { label: "Settings", icon: Settings, href: "/settings" },
     ],
   },
 ];
