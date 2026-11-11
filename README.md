@@ -64,6 +64,15 @@ docker compose logs -f frontend
 docker compose exec backend php artisan db:seed --class=DemoSeeder --force
 ```
 
+O seeder é idempotente: ele completa o que falta, mas não apaga nada. Para zerar
+de verdade — inclusive o que o smoke test cria — derrube o banco antes:
+
+```bash
+docker compose exec mongo mongosh --quiet --eval 'db.getSiblingDB("basi_escalas").dropDatabase()' && docker compose exec backend php artisan db:seed --class=DemoSeeder --force
+```
+
+Isso invalida os tokens de sessão, então é preciso entrar de novo no front.
+
 ```bash
 docker compose down
 ```
