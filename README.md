@@ -16,17 +16,65 @@ basi-escalas/
 └── docker-compose.yml
 ```
 
+Cada serviço tem o seu Dockerfile: `backend/Dockerfile` (PHP 8.4 CLI + extensão
+`mongodb`), `frontend/Dockerfile.dev` (Next em modo desenvolvimento, com hot
+reload) e `frontend/Dockerfile` (build de produção, saída `standalone`).
+
 ## Rodando
 
-### Com Docker
+### Com Docker — o caminho recomendado
+
+Precisa só do Docker; nada de PHP, Composer ou Node na máquina.
 
 ```bash
 docker compose up -d --build
 ```
 
-Front em `http://localhost:3000`, API em `http://localhost:8000/api`, Mongo em `27017`.
+Na primeira subida o container do backend instala as dependências, gera o `APP_KEY`,
+espera o Mongo responder e popula o banco com os dados de demonstração. Isso leva um
+ou dois minutos — acompanhe com:
 
-### Local
+```bash
+docker compose logs -f backend
+```
+
+Quando o `backend` aparecer como `healthy` em `docker compose ps`, o sistema está no ar:
+
+| Serviço | Endereço |
+|---|---|
+| Front-end | `http://localhost:3000` |
+| API | `http://localhost:8000/api` |
+| Sonda da API | `http://localhost:8000/api/health` |
+| MongoDB | `localhost:27017` |
+
+O código é montado dentro dos containers, então editar `backend/` ou `frontend/`
+recarrega sozinho — não precisa reconstruir a imagem.
+
+Comandos do dia a dia:
+
+```bash
+docker compose ps
+```
+
+```bash
+docker compose logs -f frontend
+```
+
+```bash
+docker compose exec backend php artisan db:seed --class=DemoSeeder --force
+```
+
+```bash
+docker compose down
+```
+
+`down` preserva o banco: ele vive no volume `basi_escalas_mongo_data`. Para começar
+do zero mesmo, use `docker compose down -v`.
+
+A variável `DB_SEED` do serviço `backend` controla a carga inicial: `auto` (padrão,
+popula só quando o banco está vazio), `always` ou `never`.
+
+### Local, sem Docker
 
 ```bash
 docker run -d --name basi_escalas_mongo -p 27017:27017 -v basi_escalas_mongo_data:/data/db mongo:8
@@ -66,7 +114,8 @@ python3 tools/api-smoke.py
 
 Exercita login, papéis, CRUD, candidatos elegíveis, autofill, publicação, confirmação,
 check-in, troca completa (pedido → oferta → aprovação), duplicação, relatórios e configurações
-contra a API rodando em `http://127.0.0.1:8000`.
+contra a API rodando em `http://127.0.0.1:8000` — vale tanto para a stack do Docker
+quanto para a execução local.
 
 ## Escopo
 

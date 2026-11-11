@@ -12,6 +12,7 @@ Convenções:
 
 | Módulo | Método | Rota | Observação |
 |---|---|---|---|
+| Infra | GET | `/health` | público; `200` com `{ status, database }`, `503` se o Mongo não responder |
 | Auth | POST | `/auth/login` | `{ email, password, remember }` → `{ token, accessToken, user }` |
 | Auth | POST | `/auth/register` | cria organização + primeiro admin |
 | Auth | GET | `/auth/me` | |

@@ -65,6 +65,24 @@ com avatar, campos em linha e os blocos de número à direita.
   cartão branco `rounded-2xl`. Software de produção, não landing page: sem gradiente
   decorativo, sem glassmorphism, sem animação sem propósito.
 
+## Docker
+
+`docker compose up -d` sobe mongo + backend + frontend. Três armadilhas já pagas:
+
+- **A imagem do backend é `php:8.4-cli`, não 8.3.** O `composer.lock` foi resolvido
+  em PHP 8.5 e puxou Symfony 8, que exige `>= 8.4.1`. Baixar a imagem quebra o build.
+- **`php artisan serve` filtra o ambiente.** Ele só repassa ao processo do servidor
+  as variáveis listadas em `ServeCommand::$passthroughVariables`. Sem isso o `.env`
+  montado do host vence o ambiente do Docker e o Mongo vira `127.0.0.1` — que, dentro
+  do container, é o próprio container. A lista é estendida em `AppServiceProvider`:
+  toda variável nova que o compose definir precisa entrar lá também.
+- **`vendor/` e `node_modules/` são volumes nomeados**, não bind mounts. O código é
+  montado do host para ter hot reload, mas as dependências ficam as da imagem — as do
+  host foram instaladas noutra versão de PHP/arquitetura.
+
+`GET /api/health` responde 200 só quando o Mongo também responde; é a sonda do
+container. `DB_SEED` (`auto`, `always`, `never`) controla a carga de demonstração.
+
 ## Antes de entregar
 
 ```bash

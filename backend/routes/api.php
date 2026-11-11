@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\SwapRequestController;
 use App\Http\Controllers\Api\SystemUserController;
 use App\Http\Controllers\Api\TrainingController;
 use App\Http\Controllers\Api\VolunteerController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +28,25 @@ use Illuminate\Support\Facades\Route;
 | Papéis: admin e coordinator enxergam tudo; ministry_leader fica restrito
 | aos ministérios que lidera; volunteer só age sobre a própria agenda.
 */
+
+// Sonda do container: responde 200 só quando o Mongo também responde.
+Route::get('health', function () {
+    try {
+        DB::connection('mongodb')->getDatabase()->command(['ping' => 1]);
+        $database = 'up';
+        $error = null;
+    } catch (\Throwable $e) {
+        $database = 'down';
+        $error = $e->getMessage();
+    }
+
+    return response()->json(array_filter([
+        'status' => $database === 'up' ? 'ok' : 'degraded',
+        'database' => $database,
+        'time' => now()->toIso8601String(),
+        'error' => config('app.debug') ? $error : null,
+    ]), $database === 'up' ? 200 : 503);
+});
 
 Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/register', [AuthController::class, 'register']);
